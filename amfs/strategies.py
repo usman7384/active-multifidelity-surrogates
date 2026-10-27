@@ -9,12 +9,13 @@ MaxVariance      active learning, first version: from a candidate pool, take the
                  most unsure (mean predictive sd over the three read-out reductions), keeping a minimum spacing so
                  a batch does not pile up in one spot.
 MultiFidelity    cost-aware active learning over case AND fidelity, paired with the multi-fidelity GP.
+MultiFidelityLHS Latin-hypercube cheap runs plus a fixed share of solver time on fine runs, same GP.
 """
 from __future__ import annotations
 
 import numpy as np
 
-from .design_space import READ_AT, candidate_pool, lhs_cases, rows_for, to_case, to_unit
+from .design_space import READ_AT, candidate_pool, case_array, lhs_cases, rows_for, to_case, to_unit
 
 
 def _spaced(order, U, k: int, min_dist: float, taken=()) -> list[int]:
@@ -106,4 +107,37 @@ class MultiFidelity:
         return out
 
 
-STRATEGIES = {s.name: s for s in (RandomLHS, MaxVariance, MultiFidelity)}
+class MultiFidelityLHS:
+    """Multi-fidelity, second version: space-filling cheap runs plus a fixed share of solver time on fine runs.
+
+    The first version lost to plain cheap runs for two reasons seen in its seed-0 run: picking cheap cases by
+    variance put 82% of them near an edge of the box (58% for a Latin hypercube), and the variance score never
+    judged a fine run worth its cost, so delta stayed fitted on the 10 initial fine runs. Here:
+
+        low runs:  `batch` fresh Latin-hypercube cases per round, as low_only
+        high runs: about `high_share` of the round's solver seconds, spent on the cases of this round's
+                   low batch with the largest var_delta (nested for free, and still space-filling)
+
+    n_high * (cost_high + cost_low) = high_share * round spend, with costs the mean observed so far; at least one.
+    """
+    name = "mf_lhs"
+    model = "multi_fidelity"
+    fidelity = "low"
+
+    def __init__(self, high_share: float = 0.3):
+        self.high_share = high_share
+
+    def propose(self, evals, model, batch: int, round_idx: int, seed: int):
+        cases = lhs_cases(batch, seed=seed * 1000 + round_idx + 1)
+        cost = {f: [e.cost_s for e in evals if e.fidelity == f] for f in ("low", "high")}
+        c_low = float(np.mean(cost["low"])) if cost["low"] else 1.0
+        c_high = float(np.mean(cost["high"])) if cost["high"] else 10.0 * c_low
+        # spend on high = share * (low spend + high spend), with the high cases' low runs already in the batch
+        n_high = max(1, int(round(self.high_share / (1 - self.high_share) * batch * c_low / c_high)))
+        _, _, sd_d = model.components(rows_for(case_array(cases)))
+        v_delta = (sd_d ** 2).reshape(len(READ_AT), len(cases)).mean(0)
+        top = np.argsort(-v_delta)[:n_high]
+        return [(c, "low") for c in cases] + [(cases[i], "high") for i in top]
+
+
+STRATEGIES = {s.name: s for s in (RandomLHS, MaxVariance, MultiFidelity, MultiFidelityLHS)}
