@@ -1,0 +1,14 @@
+# Baseline: Latin-hypercube runs, all high fidelity (what forming-surrogates did).
+name: random_lhs
+strategy: random_lhs
+seed: 0
+budget_s: 3600            # solver CPU seconds for training runs (about 170 fine-mesh runs)
+init: {n_runs: 20}
+batch: 10
+test: {n_runs: 40, seed: 12345}   # fixed, high fidelity, shared by every strategy
+fidelities:
+  low: {nz: 4}
+  high: {nz: 12}
+cache_dir: cache
+workers: 4
+gp: {iters: 300, restarts: 3}
