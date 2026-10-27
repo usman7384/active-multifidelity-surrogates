@@ -14,11 +14,25 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from .design_space import lhs_cases
+from .design_space import CASE_KEYS, lhs_cases
 from .metrics import score
-from .models import SingleFidelityGP, table
+from .models import make_model, table
 from .oracle import Oracle
 from .strategies import STRATEGIES
+
+
+def _key(case: dict, fidelity: str) -> tuple:
+    return (fidelity,) + tuple(round(case[k], 12) for k in CASE_KEYS)
+
+
+def _initial(cfg: dict, strategy, oracle: Oracle, seed: int) -> list:
+    """Initial design. Single fidelity: init.n_runs LHS cases at the strategy's fidelity. Multi-fidelity:
+    init.n_low LHS cases at low fidelity, the first init.n_high of them also at high (nested design)."""
+    init = cfg["init"]
+    if "n_low" in init:
+        cases = lhs_cases(int(init["n_low"]), seed=seed)
+        return oracle.query(cases, "low") + oracle.query(cases[: int(init["n_high"])], "high")
+    return oracle.query(lhs_cases(int(init["n_runs"]), seed=seed), strategy.fidelity)
 
 
 def load_config(path: str | Path) -> dict:
@@ -34,25 +48,36 @@ def run_experiment(cfg: dict, out_dir: str | Path = "results", log=print) -> dic
     test = oracle.query(lhs_cases(cfg["test"]["n_runs"], seed=cfg["test"]["seed"]), "high")
     Xt, yt = table(test, "high")
 
-    evals = oracle.query(lhs_cases(cfg["init"]["n_runs"], seed=seed), strategy.fidelity)
+    evals = _initial(cfg, strategy, oracle, seed)
     history = []
     for rnd in range(int(cfg.get("max_rounds", 1000))):
-        model = SingleFidelityGP(seed=seed, **gp_args).fit(evals)
+        model = make_model(strategy.model, getattr(strategy, "fidelity", "high"), seed, gp_args).fit(evals)
         mu, sd = model.predict(Xt)
         spent = float(sum(e.cost_s for e in evals))
         point = dict(round=rnd, cost_s=spent,
                      n_runs={f: sum(e.fidelity == f for e in evals) for f in oracle.fidelities},
                      n_stopped_early=sum(e.stopped_early for e in evals), **score(yt, mu, sd))
+        if hasattr(model, "rho"):
+            point["rho"] = model.rho
         history.append(point)
         log(f"[{strategy.name}] round {rnd}: {spent:.0f} s, runs {point['n_runs']}, "
             f"rmse {point['rmse']:.3f}, cov95 {point['coverage95']:.2f}")
         if spent >= cfg["budget_s"]:
             break
-        batch = strategy.propose(evals, model, int(cfg["batch"]), rnd, seed)
+        seen = {_key(e.case, e.fidelity) for e in evals}
+        batch = []
+        for c, f in strategy.propose(evals, model, int(cfg["batch"]), rnd, seed):
+            if _key(c, f) not in seen:            # never solve (or charge) the same case and fidelity twice
+                seen.add(_key(c, f))
+                batch.append((c, f))
+        if not batch:
+            log("strategy proposed nothing new; stopping")
+            break
         for fid in sorted({f for _, f in batch}):
             evals += oracle.query([c for c, f in batch if f == fid], fid)
 
-    out = dict(name=cfg.get("name", strategy.name), strategy=strategy.name, seed=seed, config=cfg,
+    out = dict(name=cfg.get("name", strategy.name), strategy=strategy.name, model=strategy.model, seed=seed,
+               config=cfg,
                test=dict(n_runs=len(test), n_rows=int(len(yt)), cost_s=float(sum(e.cost_s for e in test))),
                history=history, created=time.strftime("%Y-%m-%dT%H:%M:%S"))
     out_dir = Path(out_dir)

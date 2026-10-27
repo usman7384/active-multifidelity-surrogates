@@ -8,11 +8,12 @@ project trained a Gaussian-process surrogate of the ring compression test on 460
 Latin hypercube. Here the same solver and the same GP are put in a loop, and three ways of spending a solver
 budget are compared on one fixed test set:
 
-| Strategy | How the next runs are chosen | Status |
-|---|---|---|
-| `random_lhs` | more Latin-hypercube cases, fine mesh (the forming-surrogates approach) | working |
-| `max_variance` | cases where the current GP is most unsure, fine mesh | working, first version |
-| `multi_fidelity` | case *and* mesh, by uncertainty reduction per solver second | planned |
+| Strategy (config) | How the next runs are chosen | Model | Status |
+|---|---|---|---|
+| `random_lhs` | more Latin-hypercube cases, fine mesh (the forming-surrogates approach) | GP on fine runs | working |
+| `low_only` | more Latin-hypercube cases, coarse mesh only ("just use cheap runs") | GP on coarse runs | working |
+| `max_variance` | cases where the current GP is most unsure, fine mesh | GP on fine runs | working, first version |
+| `multi_fidelity` | case *and* mesh, by predictive variance removed per solver second | autoregressive multi-fidelity GP | working, first version |
 
 The result this repo is built to produce is one figure: **test error and 95% coverage against solver CPU
 hours**, one line per strategy, over several seeds.
@@ -30,8 +31,11 @@ initial LHS runs -> fit GP -> score on test set -> strategy proposes a batch -> 
 - **Data** (`amfs/design_space.py`): a case is (od_id, h_id, mf, m) in the forming-surrogates training box. Each
   run is pressed to 30.5% and read at 10, 20 and 30%, giving up to three rows of (od_id, h_id, mf, m, reduction)
   -> inner-diameter change. Runs that stop early (fold-over at high friction) give fewer rows.
-- **Model** (`amfs/models.py`): the forming-surrogates GP (Matérn 5/2, ARD, GPyTorch fit, numpy serving), fitted
-  on fine-mesh rows. The multi-fidelity GP is specified in its docstring and not built yet.
+- **Models** (`amfs/models.py`): the forming-surrogates GP (Matérn 5/2, ARD, GPyTorch fit, numpy serving) on one
+  fidelity's rows; and the autoregressive multi-fidelity GP, f_high = rho * f_low + delta: a GP on all coarse
+  rows, rho by least squares at the fine rows, and a second GP on the remaining correction. On a synthetic
+  check with 150 cheap and 12 expensive points (`tests/test_multifidelity.py`) it reaches RMSE 0.012 against
+  0.61 for a GP on the 12 expensive points and 0.67 for one on the 150 cheap points.
 - **Scores** (`amfs/metrics.py`): RMSE, 95% coverage, CRPS and mean predictive sd on a fixed fine-mesh test set
   of 40 runs (its own seed; not charged to any budget).
 
@@ -40,9 +44,11 @@ initial LHS runs -> fit GP -> score on test set -> strategy proposes a batch -> 
 ```bash
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python -m pytest -q                                      # about 1.5 minutes, includes a tiny experiment
+python -m pytest -q                                      # about 2 minutes, includes two tiny experiments
 python scripts/run.py configs/random_lhs.yaml --seed 0
 python scripts/run.py configs/max_variance.yaml --seed 0
+python scripts/run.py configs/low_only.yaml --seed 0
+python scripts/run.py configs/multi_fidelity.yaml --seed 0
 python scripts/plot.py results/*.json --out results/cost_curves.png
 ```
 
@@ -73,7 +79,7 @@ A default experiment spends 3,600 solver seconds (about 170 fine-mesh runs); wit
 
 ## Open decisions (next steps)
 
-1. **Multi-fidelity model and strategy:** being built (`amfs/models.py`, `amfs/strategies.py`).
+1. **First real comparison:** run the four configs with one seed, look at the cost curves, then 5 seeds each.
 2. **Acquisition.** `max_variance` is the simplest active rule. Better: integrated variance reduction over a
    reference set, or a decision-aware score that targets rings near the spec boundary, where go/check/stop
    verdicts flip.

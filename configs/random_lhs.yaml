@@ -11,4 +11,4 @@ fidelities:
   high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16
 cache_dir: cache
 workers: 4
-gp: {iters: 300, restarts: 3}
+gp: {iters: 200, restarts: 2}     # identical in every config, so only the sampling differs

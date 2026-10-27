@@ -1,0 +1,16 @@
+# Seconds-scale check of the multi-fidelity path.
+name: smoke_mf
+strategy: multi_fidelity
+strategy_args: {pool: 256, min_dist: 0.2}
+seed: 0
+budget_s: 120
+max_rounds: 2
+init: {n_low: 6, n_high: 3}
+batch: 4
+test: {n_runs: 3, seed: 12345}
+fidelities:
+  low: {nz: 3, dh_frac: 0.04}
+  high: {nz: 4, dh_frac: 0.04}
+cache_dir: cache
+workers: 4
+gp: {iters: 60, restarts: 1}

@@ -1,0 +1,15 @@
+# Multi-fidelity: cheap coarse runs plus a few fine runs, chosen by variance removed per solver second.
+name: multi_fidelity
+strategy: multi_fidelity
+strategy_args: {pool: 2048, min_dist: 0.15}
+seed: 0
+budget_s: 3600            # solver CPU seconds for training runs, same as the other strategies
+init: {n_low: 60, n_high: 10}     # nested: the 10 high cases are the first 10 of the 60 low cases (about 410 s)
+batch: 30                 # (case, fidelity) picks per round; a high pick also adds its low partner
+test: {n_runs: 40, seed: 12345}
+fidelities:
+  low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)
+  high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16
+cache_dir: cache
+workers: 4
+gp: {iters: 200, restarts: 2}     # identical in every config, so only the sampling differs

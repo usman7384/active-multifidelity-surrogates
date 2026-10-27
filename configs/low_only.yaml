@@ -1,0 +1,17 @@
+# "Just use cheap runs": Latin-hypercube cases, all coarse. Scored on the same fine-mesh test set, so the
+# coarse bias counts against it. The competitor the fidelity study says multi-fidelity must beat.
+name: low_only
+strategy: random_lhs
+strategy_args: {fidelity: low}
+seed: 0
+budget_s: 3600
+max_rounds: 12            # caps the exact GP at about 1,200 runs (3,600 rows); accuracy is bias-limited well before
+init: {n_runs: 100}
+batch: 100
+test: {n_runs: 40, seed: 12345}
+fidelities:
+  low: {nz: 4, dh_frac: 0.04}
+  high: {nz: 12}
+cache_dir: cache
+workers: 4
+gp: {iters: 200, restarts: 2}
