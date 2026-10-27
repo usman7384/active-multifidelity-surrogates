@@ -6,7 +6,7 @@ seed: 0
 budget_s: 3600            # solver CPU seconds for training runs, same as the other strategies
 init: {n_low: 60, n_high: 10}     # nested: the 10 high cases are the first 10 of the 60 low cases (about 410 s)
 batch: 100                # (case, fidelity) picks per round, as low_only; a high pick also adds its low partner
-max_rounds: 12            # caps the exact low GP near low_only's size; refits dominate the wall time past that
+max_rounds: 6             # caps the exact GP near 700 runs: refit time grows steeply past that, and accuracy is bias-limited well before
 test: {n_runs: 40, seed: 12345}
 fidelities:
   low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)

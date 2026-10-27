@@ -5,7 +5,7 @@ strategy: random_lhs
 strategy_args: {fidelity: low}
 seed: 0
 budget_s: 3600
-max_rounds: 12            # caps the exact GP at about 1,200 runs (3,600 rows); accuracy is bias-limited well before
+max_rounds: 6             # caps the exact GP near 700 runs: refit time grows steeply past that, and accuracy is bias-limited well before
 init: {n_runs: 100}
 batch: 100
 test: {n_runs: 40, seed: 12345}
