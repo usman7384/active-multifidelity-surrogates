@@ -83,9 +83,10 @@ class MultiFidelityGP:
         return self
 
     def components(self, X: np.ndarray) -> tuple[float, np.ndarray, np.ndarray]:
-        """(rho, sd_low, sd_delta) at X: the two parts of the predictive uncertainty, for the strategy."""
-        _, sd_l = self.low.predict(X)
-        sd_d = self.delta.predict(X)[1] if self.delta is not None else np.zeros(len(X))
+        """(rho, sd_low, sd_delta) at X: the two parts of the predictive uncertainty, for the strategy.
+        Latent only (no noise term): a new run cannot remove the noise floor, so it must not count as reducible."""
+        _, sd_l = self.low.predict(X, include_noise=False)
+        sd_d = self.delta.predict(X, include_noise=False)[1] if self.delta is not None else np.zeros(len(X))
         return self.rho, sd_l, sd_d
 
     def predict(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

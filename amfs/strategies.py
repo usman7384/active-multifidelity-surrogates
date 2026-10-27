@@ -38,7 +38,8 @@ class RandomLHS:
         self.fidelity = fidelity
 
     def propose(self, evals, model, batch: int, round_idx: int, seed: int):
-        return [(c, self.fidelity) for c in lhs_cases(batch, seed=seed * 1000 + round_idx)]
+        # + 1: round 0 must not reuse the initial design's seed (same seed and size give the same cases)
+        return [(c, self.fidelity) for c in lhs_cases(batch, seed=seed * 1000 + round_idx + 1)]
 
 
 class MaxVariance:
