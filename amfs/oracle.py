@@ -17,8 +17,8 @@ import numpy as np
 
 from .design_space import READ_AT, RUN_TO
 
-# elements through the half height; forming-surrogates used 8 for training and 12 for its fine-mesh test split
-DEFAULT_FIDELITIES = {"low": {"nz": 4}, "high": {"nz": 12}}
+# nz = elements through the half height, dh_frac = die travel per step (fraction of the half height)
+DEFAULT_FIDELITIES = {"low": {"nz": 4, "dh_frac": 0.04}, "high": {"nz": 12}}   # chosen by scripts/fidelity_study.py
 
 
 @dataclass

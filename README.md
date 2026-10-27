@@ -49,12 +49,31 @@ python scripts/plot.py results/*.json --out results/cost_curves.png
 A default experiment spends 3,600 solver seconds (about 170 fine-mesh runs); with 4 workers that is roughly
 15-20 minutes plus the GP refits. Results land in `results/<name>_seed<k>.json`.
 
+## The fidelity pair (decided)
+
+`scripts/fidelity_study.py` ran two rings at six frictions on eight numerics levels against nz = 16
+([results](results/fidelity/fidelity_study.json), [figure](results/fidelity/fidelity_study.png)):
+
+| Level | Seconds per run | RMSE vs nz16 (all) | RMSE at mf >= 0.6 | Runs stopped early (of 12) |
+|---|---|---|---|---|
+| **low: nz = 4, dh_frac = 0.04** | 2.3 | 0.105 | 0.165 | 1 |
+| nz = 4 | 12.6 | 0.096 | 0.152 | 1 |
+| nz = 8 | 24.0 | 0.020 | 0.026 | 3 |
+| **high: nz = 12** | 27.1 | 0.013 | 0.013 | 4 |
+| nz = 16 (reference) | 70.9 | 0 | 0 | 5 |
+
+- The time step, not the mesh, is the cheap lever: 4x larger steps cut the coarse run from 12.6 s to 2.3 s for
+  almost no extra error. The pair is about 12x apart in cost.
+- The coarse error is systematic: near zero at low friction, and a growing over-prediction of the shrink at high
+  friction (up to 0.28 points). That is the kind of bias a correction GP can learn.
+- Finer meshes fold over *earlier* (their small corner elements hit the collapse limit sooner), so at high
+  friction the expensive runs reach 30% less often than the cheap ones.
+- Every mesh error is small: the worst coarse error is about the lab gauge noise (0.3 points) and about 3x the
+  GP's own error. Multi-fidelity has to beat "just use cheap runs" as well as "just use fine runs".
+
 ## Open decisions (next steps)
 
-1. **Fidelity gap.** On the standard ring at mf = 0.3, a coarse run (nz = 4) costs 10 s and a fine run
-   (nz = 12) 21 s, and they agree within 0.03 points. That gap is too small for multi-fidelity to pay off. The
-   low fidelity needs to be much cheaper (larger time steps via `dh_frac`, or nz = 3) or the high fidelity more
-   expensive (nz = 16-24), and the gap should be measured at high friction, where the meshes disagree more.
+1. **Multi-fidelity model and strategy:** being built (`amfs/models.py`, `amfs/strategies.py`).
 2. **Acquisition.** `max_variance` is the simplest active rule. Better: integrated variance reduction over a
    reference set, or a decision-aware score that targets rings near the spec boundary, where go/check/stop
    verdicts flip.

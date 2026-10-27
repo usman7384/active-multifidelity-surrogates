@@ -2,13 +2,13 @@
 name: random_lhs
 strategy: random_lhs
 seed: 0
-budget_s: 3600            # solver CPU seconds for training runs (about 170 fine-mesh runs)
+budget_s: 3600            # solver CPU seconds for training runs (about 130 nz12 runs)
 init: {n_runs: 20}
 batch: 10
 test: {n_runs: 40, seed: 12345}   # fixed, high fidelity, shared by every strategy
 fidelities:
-  low: {nz: 4}
-  high: {nz: 12}
+  low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)
+  high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16
 cache_dir: cache
 workers: 4
 gp: {iters: 300, restarts: 3}
