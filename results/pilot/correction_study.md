@@ -39,3 +39,13 @@ n_high=30  none: 0.156/0.84  constant bias: 0.140/0.98  linear in mf, red: 0.123
 n_high=50  none: 0.156/0.84  constant bias: 0.139/0.98  linear in mf, red: 0.122/0.99  GP(mf,red): 0.258/0.84  GP(mf,m,red): 0.152/0.96  GP all 5: 0.140/0.98
 n_high=70  none: 0.156/0.84  constant bias: 0.141/0.99  linear in mf, red: 0.126/0.99  GP(mf,red): 0.184/0.86  GP(mf,m,red): 0.165/0.97  GP all 5: 0.107/0.99
 ```
+
+## Study 3: outliers in the linear correction (scripts/correction_study/diag_rounds.py, mf_lhs seed 0)
+
+mf_lhs seed 0's error rose from 0.179 (round 3) to 0.236 (round 5) while the low GP alone improved (0.178 -> 0.155).
+Cause: one fine run with a 2.61-point residual (typical ~0.2); the three largest are all thick rings near fold-over
+at 30% reduction. Least squares lets it tilt the whole correction. Huber IRLS plus a MAD-based interval width:
+```
+round 3: least squares rmse 0.179 cov 0.98 | Huber rmse 0.159 cov 0.94   (low GP alone 0.178 / 0.86)
+round 5: least squares rmse 0.236 cov 0.98 | Huber rmse 0.115 cov 0.95   (low GP alone 0.155 / 0.85)
+```

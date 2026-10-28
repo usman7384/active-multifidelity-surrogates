@@ -141,10 +141,23 @@ class LinearDelta:
         u = (X - LO5) / (HI5 - LO5)
         return np.column_stack([np.ones(len(X)), u[:, self.MF], u[:, self.RED], u[:, self.MF] * u[:, self.RED]])
 
+    def __init__(self, robust: bool = True):
+        self.robust = robust
+
     def fit(self, X, r):
         A = self._A(X)
-        self.w = np.linalg.lstsq(A, r, rcond=None)[0]
-        self.s = float(np.std(r - A @ self.w) * np.sqrt(len(r) / max(1, len(r) - A.shape[1])))
+        wts = np.ones(len(r))
+        for _ in range(30 if self.robust else 1):         # Huber IRLS (c = 1.345 robust sd); 1 pass = least squares
+            sw = np.sqrt(wts)
+            self.w = np.linalg.lstsq(A * sw[:, None], r * sw, rcond=None)[0]
+            e = r - A @ self.w
+            scale = 1.4826 * np.median(np.abs(e - np.median(e))) + 1e-9
+            wts = np.minimum(1.0, 1.345 * scale / np.maximum(np.abs(e), 1e-12))
+        e = r - A @ self.w
+        dof = np.sqrt(len(r) / max(1, len(r) - A.shape[1]))
+        # robust: the spread of the typical residual, so a fold-over outlier does not widen every interval
+        spread = 1.4826 * np.median(np.abs(e - np.median(e))) if self.robust else np.std(e)
+        self.s = float(spread * dof)
         return self
 
     def predict(self, X, include_noise: bool = True):
