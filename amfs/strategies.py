@@ -148,4 +148,55 @@ class MultiFidelityLHS:
         return [(c, "low") for c in cases] + [(cases[i], "high") for i in top]
 
 
-STRATEGIES = {s.name: s for s in (RandomLHS, MaxVariance, MultiFidelity, MultiFidelityLHS)}
+class MultiFidelityIVR:
+    """Cost-aware integrated variance reduction over case AND fidelity, for the multi-fidelity GP (amfs/ivr.py).
+
+    Each round spends about `round_s` solver CPU seconds. Picks are greedy: the (case, fidelity) that removes the
+    most predictive variance per CPU second, averaged over a fixed reference set of `n_ref` cases (three rows
+    each), from a fresh Sobol pool of `pool` cases. After each pick the posterior covariance is downdated, so
+    later picks account for what earlier ones will teach. A fine pick also schedules the cheap run at the same
+    case (nested design) unless one is already in the batch. Unlike MultiFidelity (point-wise variance), a run
+    at the edge of the box scores low: it removes variance only in the half-neighbourhood inside the box.
+    """
+    name = "mf_ivr"
+    model = "multi_fidelity"
+    fidelity = "low"
+
+    def __init__(self, pool: int = 1024, n_ref: int = 300, round_s: float = 600.0):
+        self.pool, self.n_ref, self.round_s = pool, n_ref, round_s
+
+    def propose(self, evals, model, batch: int, round_idx: int, seed: int):
+        from .ivr import GreedyIVR, delta_cov, gp_cov
+        C = candidate_pool(self.pool, seed=seed * 1000 + 500 + round_idx)
+        Z = candidate_pool(self.n_ref, seed=seed * 1000 + 999)          # fixed per seed: where accuracy matters
+        R = np.vstack([rows_for(Z), rows_for(C)])
+        nz, nc = len(READ_AT) * len(Z), len(C)
+        low = GreedyIVR(gp_cov(model.low, R), nz, nc, model.low.noise * model.low.ysd ** 2)
+        dlt = None
+        if model.delta is not None:
+            S_d, noise_d = delta_cov(model.delta, R)
+            dlt = GreedyIVR(S_d, nz, nc, noise_d)
+        cost = {f: [e.cost_s for e in evals if e.fidelity == f] for f in ("low", "high")}
+        c_low = float(np.mean(cost["low"])) if cost["low"] else 1.0
+        c_high = float(np.mean(cost["high"])) if cost["high"] else 10.0 * c_low
+        rho2 = model.rho ** 2
+        has_low, has_high = np.zeros(nc, bool), np.zeros(nc, bool)
+        out, spent = [], 0.0
+        while spent < self.round_s and not has_low.all():
+            r_low = rho2 * low.reductions()
+            r_dlt = dlt.reductions() if dlt is not None else np.zeros(nc)
+            s_low = np.where(has_low, -np.inf, r_low / c_low)
+            extra = np.where(has_low, 0.0, c_low)
+            s_high = np.where(has_high | (dlt is None), -np.inf,
+                              (r_dlt + np.where(has_low, 0.0, r_low)) / (c_high + extra))
+            j_l, j_h = int(np.argmax(s_low)), int(np.argmax(s_high))
+            if s_high[j_h] > s_low[j_l]:
+                if not has_low[j_h]:
+                    low.pick(j_h); has_low[j_h] = True; out.append((to_case(C[j_h]), "low")); spent += c_low
+                dlt.pick(j_h); has_high[j_h] = True; out.append((to_case(C[j_h]), "high")); spent += c_high
+            else:
+                low.pick(j_l); has_low[j_l] = True; out.append((to_case(C[j_l]), "low")); spent += c_low
+        return out
+
+
+STRATEGIES = {s.name: s for s in (RandomLHS, MaxVariance, MultiFidelity, MultiFidelityLHS, MultiFidelityIVR)}

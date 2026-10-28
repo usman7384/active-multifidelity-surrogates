@@ -208,6 +208,7 @@ class LinearDelta:
             scale = 1.4826 * np.median(np.abs(e - np.median(e))) + 1e-9
             wts = np.minimum(1.0, 1.345 * scale / np.maximum(np.abs(e), 1e-12))
         e = r - A @ self.w
+        self.P = np.linalg.pinv((A * wts[:, None]).T @ A)    # weight covariance / s^2, for IVR (amfs/ivr.py)
         dof = np.sqrt(len(r) / max(1, len(r) - A.shape[1]))
         # robust: the spread of the typical residual, so a fold-over outlier does not widen every interval
         spread = 1.4826 * np.median(np.abs(e - np.median(e))) if self.robust else np.std(e)
