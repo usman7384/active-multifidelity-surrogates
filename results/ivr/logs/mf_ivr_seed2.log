@@ -1,0 +1,16 @@
+[mf_ivr] round 0: 492 s, runs {'low': 60, 'high': 10}, rmse 0.690, cov95 0.95
+oracle: 231 low-fidelity runs on 4 workers (0 cached)
+[mf_ivr] round 1: 945 s, runs {'low': 291, 'high': 10}, rmse 0.311, cov95 0.92
+oracle: 287 low-fidelity runs on 4 workers (0 cached)
+[mf_ivr] round 2: 1541 s, runs {'low': 578, 'high': 10}, rmse 0.297, cov95 0.91
+oracle: 288 low-fidelity runs on 4 workers (0 cached)
+[mf_ivr] round 3: 2135 s, runs {'low': 866, 'high': 10}, rmse 0.265, cov95 0.87
+oracle: 5 high-fidelity runs on 4 workers (0 cached)
+oracle: 208 low-fidelity runs on 4 workers (0 cached)
+[mf_ivr] round 4: 2688 s, runs {'low': 1074, 'high': 15}, rmse 0.282, cov95 0.89
+oracle: 6 high-fidelity runs on 4 workers (0 cached)
+oracle: 206 low-fidelity runs on 4 workers (0 cached)
+[mf_ivr] round 5: 3248 s, runs {'low': 1280, 'high': 21}, rmse 0.275, cov95 0.88
+oracle: 6 high-fidelity runs on 4 workers (0 cached)
+oracle: 212 low-fidelity runs on 4 workers (0 cached)
+[mf_ivr] round 6: 3839 s, runs {'low': 1492, 'high': 27}, rmse 0.272, cov95 0.83

@@ -1,0 +1,215 @@
+{
+ "name": "mf_ivr",
+ "strategy": "mf_ivr",
+ "model": "multi_fidelity",
+ "seed": 1,
+ "cost_basis": "cpu_s",
+ "config": {
+  "name": "mf_ivr",
+  "strategy": "mf_ivr",
+  "strategy_args": {
+   "pool": 1024,
+   "n_ref": 300,
+   "round_s": 600
+  },
+  "seed": 1,
+  "budget_s": 3600,
+  "init": {
+   "n_low": 60,
+   "n_high": 10
+  },
+  "batch": 200,
+  "max_rounds": 40,
+  "test": {
+   "n_runs": 100,
+   "seed": 777
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "D:/Projects/active-multifidelity-surrogates/cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  },
+  "mf_model": {
+   "rho": 1.0,
+   "delta": "auto"
+  }
+ },
+ "test": {
+  "n_runs": 100,
+  "n_rows": 274,
+  "cost_s": 2734.2650000000003
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 557.652,
+   "n_runs": {
+    "low": 60,
+    "high": 10
+   },
+   "n_stopped_early": 5,
+   "rmse": 0.6232788590935656,
+   "coverage95": 0.9635036496350365,
+   "crps": 0.3092826888875603,
+   "mean_sd": 0.655325600094399,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.061313728939766964,
+    "gp": 0.02169851683198289
+   }
+  },
+  {
+   "round": 1,
+   "cost_s": 889.9019999999999,
+   "n_runs": {
+    "low": 230,
+    "high": 10
+   },
+   "n_stopped_early": 13,
+   "rmse": 0.2891298725702288,
+   "coverage95": 0.8795620437956204,
+   "crps": 0.1362131793445943,
+   "mean_sd": 0.20702730435618802,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.06196376195001636,
+    "gp": 0.024144738020932578
+   }
+  },
+  {
+   "round": 2,
+   "cost_s": 1371.0579999999998,
+   "n_runs": {
+    "low": 484,
+    "high": 10
+   },
+   "n_stopped_early": 22,
+   "rmse": 0.24137729176548212,
+   "coverage95": 0.8868613138686131,
+   "crps": 0.10052762335042027,
+   "mean_sd": 0.11042282131196243,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.06114447859030579,
+    "gp": 0.02225039507604282
+   }
+  },
+  {
+   "round": 3,
+   "cost_s": 1896.8999999999994,
+   "n_runs": {
+    "low": 735,
+    "high": 12
+   },
+   "n_stopped_early": 33,
+   "rmse": 0.22390632165075486,
+   "coverage95": 0.8576642335766423,
+   "crps": 0.08731886830562266,
+   "mean_sd": 0.09544362222873971,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.06643226716612574,
+    "gp": 0.03801533419560133
+   }
+  },
+  {
+   "round": 4,
+   "cost_s": 2478.418,
+   "n_runs": {
+    "low": 965,
+    "high": 16
+   },
+   "n_stopped_early": 47,
+   "rmse": 0.21419474077396802,
+   "coverage95": 0.8722627737226277,
+   "crps": 0.08013489260787254,
+   "mean_sd": 0.08958706669515837,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.08559346273375533,
+    "gp": 0.04926694700345704
+   }
+  },
+  {
+   "round": 5,
+   "cost_s": 2954.8570000000004,
+   "n_runs": {
+    "low": 1102,
+    "high": 26
+   },
+   "n_stopped_early": 63,
+   "rmse": 0.22379748723270526,
+   "coverage95": 0.9014598540145985,
+   "crps": 0.0881126103086386,
+   "mean_sd": 0.11012308470190796,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.27443288777952357,
+    "gp": 0.42013487465765176
+   }
+  },
+  {
+   "round": 6,
+   "cost_s": 3495.578000000001,
+   "n_runs": {
+    "low": 1348,
+    "high": 30
+   },
+   "n_stopped_early": 83,
+   "rmse": 0.2076001566183795,
+   "coverage95": 0.8321167883211679,
+   "crps": 0.08249612908379883,
+   "mean_sd": 0.07773351856650866,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.2704851216854755,
+    "gp": 0.318253752133123
+   }
+  },
+  {
+   "round": 7,
+   "cost_s": 4013.2320000000004,
+   "n_runs": {
+    "low": 1586,
+    "high": 35
+   },
+   "n_stopped_early": 102,
+   "rmse": 0.2517119952886503,
+   "coverage95": 0.9051094890510949,
+   "crps": 0.10554493436692006,
+   "mean_sd": 0.1587199679365121,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.2700321981312174,
+    "gp": 0.22520754215671393
+   }
+  }
+ ],
+ "created": "2026-10-28T20:24:09"
+}
