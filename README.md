@@ -65,6 +65,30 @@ same code and its logs are kept in `results/confirm/logs_crashed_oom_1601`.
   relative gain 29.5%, median 34.7%. The one loss is seed 14 (0.290 against 0.255).
 - At 0.75 CPU h the gain also holds (Wilcoxon p = 0.026). Coverage is closer to 0.95 in 12 of 12 seeds.
 
+### Exploratory: integrated variance reduction (`mf_ivr`), seeds 1-8
+
+`mf_ivr` (`amfs/ivr.py`) picks case and mesh greedily by the predictive variance a run removes, averaged over
+a fixed reference set of 300 cases, per CPU second; the posterior covariance is downdated exactly after each
+pick, so a batch accounts for what its earlier picks will teach. It decides for itself how many fine runs to
+buy. Not pre-registered: seeds 1-8, the same as the main table, so read it as a lead, not a result
+([summary](results/ivr_compare/summary.md)).
+
+| at 1.0 CPU h, seeds 1-8 | `low_only` | `mf_lhs` | `mf_ivr` |
+|---|---|---|---|
+| Test RMSE, mean ± sd | 0.260 ± 0.024 | 0.230 ± 0.035 | 0.209 ± 0.052 |
+| 95% coverage, final mean | 0.68 | 0.91 | 0.88 |
+| Fine runs, final mean | 0 | 50 | 38 (19-69) |
+
+- **Against `mf_lhs`: no clear difference.** Lower RMSE in 5 of 8 seeds at 1 h, and earlier on (0.25-0.5 h)
+  it is better on average, since it does not pay for fine runs before they are worth it. Its coverage is
+  worse (`mf_lhs` closer to 0.95 in 7 of 8).
+- **Against `low_only`:** lower RMSE in 7 of 8 seeds at 0.75 and 1 h, coverage closer to 0.95 in 8 of 8.
+- **It is less stable.** How many fine runs it buys varies 19-69 by seed, and that drives the result:
+  the three seeds with 49-69 fine runs end at RMSE 0.12-0.15 and coverage 0.92-0.95, the five with 19-35
+  end at 0.22-0.27, near `low_only`, with coverage 0.79-0.91. The variance it computes for the correction is
+  itself uncertain while fine runs are few, so it under-buys them.
+  A floor on the fine-run share is the obvious next fix; until then `mf_lhs` is the safer default.
+
 ## How it works
 
 ```
@@ -163,8 +187,7 @@ The sweep is resumable (a finished strategy and seed is skipped), and seeds draw
 
 ## Next steps
 
-1. Integrated variance reduction (`mf_ivr`): choose case and mesh by the variance a run removes over the whole
-   space, per CPU second (exploratory run in progress).
+1. `mf_ivr` with a floor on the fine-run share, then a pre-registered comparison against `mf_lhs` on new seeds.
 2. Tune the fine-run share on a validation set, and calibrate the intervals (all strategies sit near 0.90).
 3. A decision-aware acquisition that targets rings near the spec boundary, where go/check/stop verdicts flip.
 
