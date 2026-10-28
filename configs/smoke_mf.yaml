@@ -1,7 +1,7 @@
 # Seconds-scale check of the multi-fidelity path.
 name: smoke_mf
-strategy: multi_fidelity
-strategy_args: {pool: 256, min_dist: 0.2}
+strategy: mf_ivr
+strategy_args: {pool: 64, n_ref: 32, round_s: 40}
 seed: 0
 budget_s: 120
 max_rounds: 2

@@ -3,13 +3,10 @@
 Each strategy proposes a list of (case, fidelity) pairs given the evaluations so far and the current model, and
 says which model it is meant to be paired with.
 
-RandomLHS        the baseline: more Latin-hypercube cases at one fidelity. High fidelity is what forming-surrogates
-                 did; low fidelity is the "just use cheap runs" competitor the fidelity study says to beat.
-MaxVariance      active learning, first version: from a candidate pool, take the cases where the current GP is
-                 most unsure (mean predictive sd over the three read-out reductions), keeping a minimum spacing so
-                 a batch does not pile up in one spot.
-MultiFidelity    cost-aware active learning over case AND fidelity, paired with the multi-fidelity GP.
-MultiFidelityLHS Latin-hypercube cheap runs plus a fixed share of solver time on fine runs, same GP.
+RandomLHS         more Latin-hypercube cases at one fidelity (fine: random_lhs; cheap: low_only).
+MaxVariance       active learning: fine runs where the current GP is most unsure, with a minimum spacing.
+MultiFidelityLHS  Latin-hypercube cheap runs plus a fixed share of solver time on fine runs; multi-fidelity GP.
+MultiFidelityIVR  active learning over case AND fidelity by integrated variance reduction per CPU second.
 """
 from __future__ import annotations
 
@@ -58,70 +55,16 @@ class MaxVariance:
         return [(to_case(C[i]), "high") for i in _spaced(np.argsort(-score), to_unit(C), batch, self.min_dist)]
 
 
-class MultiFidelity:
-    """Cost-aware max-variance over (case, fidelity), for the autoregressive multi-fidelity GP.
-
-    The predictive variance splits into rho^2 * var_low + var_delta. A low run at x mainly removes the first part
-    near x; a high run (always paired with a low run at the same case, to keep the design nested) mainly
-    removes the second. Score each candidate for each fidelity by the variance it would remove per solver second:
-
-        score_low(x)  = rho^2 * var_low(x)  / cost_low
-        score_high(x) = var_delta(x)        / (cost_high + cost_low)
-
-    averaged over the three read-out reductions, with costs taken as the mean observed so far. The batch is the
-    best `batch` (case, fidelity) choices across both lists, spaced as in MaxVariance within each fidelity.
-    This is a heuristic proxy, not an exact variance-reduction calculation: it treats each run as removing the
-    variance at its own location and ignores how far that reduction spreads. Upgrade: integrated variance
-    reduction over a reference set.
-    """
-    name = "multi_fidelity"
-    model = "multi_fidelity"
-    fidelity = "low"
-
-    def __init__(self, pool: int = 2048, min_dist: float = 0.15):
-        self.pool, self.min_dist = pool, min_dist
-
-    def propose(self, evals, model, batch: int, round_idx: int, seed: int):
-        C = candidate_pool(self.pool, seed=seed * 1000 + round_idx)
-        rho, sd_l, sd_d = model.components(rows_for(C))
-        n = len(C)
-        v_low = (rho ** 2 * sd_l ** 2).reshape(len(READ_AT), n).mean(0)
-        v_delta = (sd_d ** 2).reshape(len(READ_AT), n).mean(0)
-        cost = {f: np.mean([e.cost_s for e in evals if e.fidelity == f] or [np.nan]) for f in ("low", "high")}
-        c_low = cost["low"] if np.isfinite(cost["low"]) else 1.0
-        c_high = cost["high"] if np.isfinite(cost["high"]) else 10.0 * c_low
-        s_low, s_high = v_low / c_low, v_delta / (c_high + c_low)
-        U = to_unit(C)
-        cand = sorted([(s, i, "low") for i, s in enumerate(s_low)] + [(s, i, "high") for i, s in enumerate(s_high)],
-                      reverse=True)
-        picked = {"low": [], "high": []}
-        out = []
-        for s, i, f in cand:
-            if all(np.linalg.norm(U[i] - U[j]) >= self.min_dist for j in picked[f]):
-                picked[f].append(i)
-                out.append((to_case(C[i]), f))
-                if f == "high":
-                    out.append((to_case(C[i]), "low"))      # nested design: the high case also gets a low run
-            if len(picked["low"]) + len(picked["high"]) == batch:
-                break
-        return out
-
-
 class MultiFidelityLHS:
-    """Multi-fidelity, second version: space-filling cheap runs plus a fixed share of solver time on fine runs.
-
-    The first version lost to plain cheap runs for two reasons seen in its seed-0 run: picking cheap cases by
-    variance put 82% of them near an edge of the box (58% for a Latin hypercube), and the variance score never
-    judged a fine run worth its cost, so delta stayed fitted on the 10 initial fine runs. Here:
+    """Space-filling cheap runs plus a fixed share of solver time on fine runs.
 
         low runs:  `batch` fresh Latin-hypercube cases per round, as low_only
         high runs: about `high_share` of the round's solver seconds, on cases of this round's low batch
                    (nested for free). high_pick = "random" takes the first of them (a random subset of a
                    Latin hypercube); "variance" takes those with the largest var_delta.
 
-    "random" is the default: picking fine runs by var_delta put them in the hardest cases (fine-minus-coarse
-    residual rms 0.43 against 0.19 for random cases), so the correction learned an unrepresentative bias and
-    over-corrected everywhere else (offline correction study, seed 0).
+    Random fine runs keep the correction representative: fine runs picked by variance sit in the hardest cases
+    and teach the correction a bias the rest of the space does not have.
 
     n_high * (cost_high + cost_low) = high_share * round spend, with costs the mean observed so far; at least one.
     """
@@ -155,13 +98,13 @@ class MultiFidelityIVR:
     most predictive variance per CPU second, averaged over a fixed reference set of `n_ref` cases (three rows
     each), from a fresh Sobol pool of `pool` cases. After each pick the posterior covariance is downdated, so
     later picks account for what earlier ones will teach. A fine pick also schedules the cheap run at the same
-    case (nested design) unless one is already in the batch. Unlike MultiFidelity (point-wise variance), a run
-    at the edge of the box scores low: it removes variance only in the half-neighbourhood inside the box.
+    case (nested design) unless one is already in the batch. A run at the edge of the box scores low: it removes
+    variance only in the half-neighbourhood inside the box.
 
-    `min_high_share`: a floor on the share of each round's CPU seconds spent on fine runs. Without it (seeds 1-8,
-    results/ivr) the greedy rule under-bought fine runs in 5 of 8 seeds (19-35 against 49-69 in the 3 seeds that
-    did best): while fine runs are few, the correction's own variance is poorly estimated, so its reductions look
-    small. If the greedy batch ends below the floor, more fine runs are added, still in IVR order, until it holds.
+    `min_high_share`: a floor on the share of each round's CPU seconds spent on fine runs. While fine runs are
+    few, the correction's own variance is poorly estimated and its reductions look small, so the greedy rule
+    can under-buy fine runs. If the greedy batch ends below the floor, fine runs are added in IVR order until it
+    holds. 0 disables the floor (mf_ivr); mf_ivr_floor uses 0.4.
     """
     name = "mf_ivr"
     model = "multi_fidelity"
@@ -220,4 +163,4 @@ class MultiFidelityIVR:
         return out
 
 
-STRATEGIES = {s.name: s for s in (RandomLHS, MaxVariance, MultiFidelity, MultiFidelityLHS, MultiFidelityIVR)}
+STRATEGIES = {s.name: s for s in (RandomLHS, MaxVariance, MultiFidelityLHS, MultiFidelityIVR)}

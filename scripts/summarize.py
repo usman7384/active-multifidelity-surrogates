@@ -19,9 +19,8 @@ import numpy as np
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-ORDER = ["random_lhs", "max_variance", "low_only", "mf_lhs", "multi_fidelity"]
-COLORS = {"random_lhs": "#1f77b4", "max_variance": "#ff7f0e", "low_only": "#2ca02c", "mf_lhs": "#d62728",
-          "multi_fidelity": "#9467bd"}
+ORDER = ["random_lhs", "max_variance", "low_only", "mf_lhs"]
+COLORS = {"random_lhs": "#1f77b4", "max_variance": "#ff7f0e", "low_only": "#2ca02c", "mf_lhs": "#d62728"}
 MATCHED_H = (0.25, 0.5, 0.75, 1.0)  # solver CPU hours at which strategies are compared head to head
 REFERENCE = "mf_lhs"                 # the strategy every other one is compared against, seed by seed
 

@@ -1,13 +1,10 @@
 """The solver as an expensive oracle: cached, parallel, and it charges every call its real CPU time.
 
-Adapted from forming-surrogates (surrogates/gp_bo/solver_calls.py). Two changes: a call names a *fidelity*
-(a mesh resolution) instead of raw numerics, and every result carries its original solve time, so an
-experiment's budget is counted in solver seconds even when the run is later read back from the cache.
-That keeps budgets reproducible: a re-run of an experiment spends exactly the same "cost".
-
-Cost is the worker process's CPU time (cpu_s), not wall time: wall time is inflated by anything else running
-on the machine, which made early costs depend on what else was running. Cache entries from before this change
-have no cpu_s and are solved again. Cache files are written atomically, so parallel experiments can share one.
+Adapted from forming-surrogates (surrogates/gp_bo/solver_calls.py). A call names a *fidelity* (a mesh
+resolution), and every result carries the CPU time of its original solve, so an experiment's budget is counted
+in solver CPU seconds even when a run is read back from the cache: a re-run spends exactly the same cost.
+CPU time rather than wall time, so other jobs on the machine do not change costs. Cache files are written
+atomically, so parallel experiments can share one cache.
 """
 from __future__ import annotations
 
