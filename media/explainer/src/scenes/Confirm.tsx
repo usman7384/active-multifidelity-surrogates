@@ -2,7 +2,7 @@ import React from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { ease, enter, place } from "../anim";
 import { CONFIRM } from "../data";
-import { Headline, Kicker, Scene, Stat, Sub, Swatch } from "../components";
+import { Headline, Kicker, Narration, Scene, Stat, Sub, Swatch } from "../components";
 import { C, FONT, T } from "../theme";
 
 // Twelve fresh trials, each a dumbbell from the cheap-only error to the mix error.
@@ -51,6 +51,7 @@ export const Confirm: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <Scene>
+      <Narration k="long_confirm" />
       <Kicker from={0}>Then we checked it properly</Kicker>
       <Headline from={6} size={76}>Test written down first. Then 12 fresh trials.</Headline>
       <Sub from={18} size={T.body} style={{ marginTop: 10 }}>

@@ -1,7 +1,8 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { CurvePanel, Swatch } from "./components";
-import { CONFIRM, FINAL } from "./data";
+import { CONFIRM, FINAL, IVR_FLOOR } from "./data";
+import { PickCard } from "./scenes/Picking";
 import { C, FONT } from "./theme";
 
 // The one-page result, as a still. Everything is at its final state (no frame dependence).
@@ -94,6 +95,26 @@ export const Overview: React.FC = () => (
           <Tile value={`${Math.round(CONFIRM.relGain * 100)}% lower`} label="error on average, same compute" color={C.mix} />
           <Tile value={`${Math.round(CONFIRM.coverageCheap * 100)}% → ${Math.round(CONFIRM.coverageMix * 100)}%`} label={`"95% sure" actually right, cheap → mix`} />
           <Tile value={`p = ${CONFIRM.p}`} label="pre-registered one-sided Wilcoxon test" />
+        </div>
+      </div>
+    </div>
+
+    <div style={{ marginTop: 40 }}>
+      <div style={{ fontSize: 26, fontWeight: 600 }}>
+        How the runs were chosen <span style={{ color: C.muted, fontWeight: 400 }}>· a fixed design against active learning</span>
+      </div>
+      <div style={{ display: "flex", gap: 30, marginTop: 14, alignItems: "stretch" }}>
+        <PickCard kind="lhs" from={-100} width={600} compact />
+        <PickCard kind="ivr" from={-100} width={600} compact />
+        <div style={{ flex: 1, padding: "20px 24px", borderRadius: 14, background: "#fff", boxShadow: `0 1px 0 ${C.border}, 0 8px 24px rgba(11,11,11,0.05)` }}>
+          <div style={{ fontSize: 22, fontWeight: 600, color: IVR_FLOOR.verdict ? C.ink : C.muted, lineHeight: 1.3 }}>
+            {IVR_FLOOR.verdict ?? "IVR with a fine-run floor: pre-registered run in progress"}
+          </div>
+          {IVR_FLOOR.detail ? <div style={{ fontSize: 20, color: C.ink2, marginTop: 10, lineHeight: 1.35 }}>{IVR_FLOOR.detail}</div> : null}
+          <div style={{ fontSize: 20, color: C.ink2, marginTop: 10, lineHeight: 1.35 }}>
+            Without the floor (seeds 1-8) IVR tied the Latin hypercube on average and beat cheap runs in 7 of 8, but its
+            result swung with how many fine runs it bought.
+          </div>
         </div>
       </div>
     </div>

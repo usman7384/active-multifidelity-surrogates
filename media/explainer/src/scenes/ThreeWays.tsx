@@ -1,8 +1,17 @@
 import React from "react";
-import { useCurrentFrame } from "remotion";
+import { useCurrentFrame, useVideoConfig } from "remotion";
 import { ease, enter } from "../anim";
-import { CurvePanel, Headline, Kicker, Scene, Swatch } from "../components";
+import { CurvePanel, Headline, Kicker, Narration, Scene, Swatch } from "../components";
 import { C, T } from "../theme";
+import { clipFrames } from "../vo";
+
+// Panel start frames follow the narration: each panel begins when its line does.
+export const threeWaysStarts = (fps: number) => {
+  const fine = 20;
+  const cheap = fine + clipFrames("long_three_fine", fps, 195, 0.2);
+  const mix = cheap + clipFrames("long_three_cheap", fps, 195, 0.2);
+  return { fine, cheap, mix, end: mix + clipFrames("long_three_mix", fps, 230, 1.2) };
+};
 
 type V = "fine" | "cheap" | "mix";
 const META: Record<V, { title: string; runs: string; color: string; verdict: string; why: string }> = {
@@ -53,9 +62,13 @@ const Panel: React.FC<{ v: V; from: number; x: number }> = ({ v, from, x }) => {
 // Scene 4: the three strategies on a toy one-dimensional picture, built up one after another.
 export const ThreeWays: React.FC = () => {
   const frame = useCurrentFrame();
-  const starts = { fine: 20, cheap: 215, mix: 410 };
+  const { fps } = useVideoConfig();
+  const starts = threeWaysStarts(fps);
   return (
     <Scene>
+      <Narration k="long_three_fine" from={starts.fine} />
+      <Narration k="long_three_cheap" from={starts.cheap} />
+      <Narration k="long_three_mix" from={starts.mix} />
       <Kicker from={0}>Three ways to spend the hour</Kicker>
       <Headline from={6} size={76}>What the model learns from each kind of data</Headline>
       <Panel v="fine" from={starts.fine} x={120} />

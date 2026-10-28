@@ -1,7 +1,7 @@
 import React from "react";
 import { useCurrentFrame } from "remotion";
 import { enter } from "../anim";
-import { Kicker, Scene } from "../components";
+import { Kicker, Narration, Scene } from "../components";
 import { C, T } from "../theme";
 
 const Line: React.FC<{ from: number; children: React.ReactNode }> = ({ from, children }) => {
@@ -16,6 +16,7 @@ export const Takeaway: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <Scene>
+      <Narration k="long_takeaway" />
       <Kicker from={0}>What it means</Kicker>
       <div style={{ display: "flex", flexDirection: "column", gap: 26, marginTop: 20 }}>
         <Line from={8}>Same hour of compute.</Line>

@@ -23,3 +23,7 @@ export const CONFIRM = {
 
 // Solver cost per run, CPU seconds (README, "The fidelity pair").
 export const COST = { fine: 34, cheap: 2, budget: 3600 };
+
+// Pre-registration part 2: mf_ivr with a 40% fine-run floor against mf_lhs, seeds 9-20 (results/confirm_ivr).
+// `verdict` stays null until that run has finished; the scenes then show "result pending".
+export const IVR_FLOOR: { verdict: string | null; detail: string | null } = { verdict: null, detail: null };

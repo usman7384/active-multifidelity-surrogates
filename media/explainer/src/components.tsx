@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { hasClip } from "./vo";
 import { ease, enter, place, pop } from "./anim";
 import { C, FONT, SAFE_X, SAFE_Y, T } from "./theme";
 import * as cv from "./curves";
@@ -351,3 +352,12 @@ export const Swatch: React.FC<{ color: string; label: string; ring?: boolean }> 
     {label}
   </div>
 );
+
+// ---------- narration ----------
+
+export const Narration: React.FC<{ k: string; from?: number }> = ({ k, from = 0 }) =>
+  hasClip(k) ? (
+    <Sequence from={from} layout="none">
+      <Audio src={staticFile(`vo/${k}.wav`)} />
+    </Sequence>
+  ) : null;

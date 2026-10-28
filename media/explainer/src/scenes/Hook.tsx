@@ -1,7 +1,7 @@
 import React from "react";
 import { useCurrentFrame } from "remotion";
 import { enter } from "../anim";
-import { Headline, MeshCard, Scene, Sub } from "../components";
+import { Headline, MeshCard, Narration, Scene, Sub } from "../components";
 import { C, T } from "../theme";
 
 // Scene 1: the choice. Two simulators of the same ring test, one hour of computer time.
@@ -9,6 +9,7 @@ export const Hook: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <Scene>
+      <Narration k="long_hook" />
       <Headline from={0}>Two ways to simulate the same test.</Headline>
       <Sub from={14} style={{ marginTop: 18 }}>
         One is accurate but slow. One is fast but slightly off. You have one hour of computer time.

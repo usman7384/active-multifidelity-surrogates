@@ -1,7 +1,7 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { ease, enter, pop } from "../anim";
-import { Headline, Kicker, Scene, Sub } from "../components";
+import { Headline, Kicker, Narration, Scene, Sub } from "../components";
 import { C, T } from "../theme";
 
 const Chip: React.FC<{ from: number; children: React.ReactNode }> = ({ from, children }) => {
@@ -34,6 +34,7 @@ export const Goal: React.FC = () => {
   const out = enter(frame, 110);
   return (
     <Scene>
+      <Narration k="long_goal" />
       <Kicker from={0}>The goal</Kicker>
       <Headline from={6}>A model that predicts the test for any setting.</Headline>
       <Sub from={22} style={{ marginTop: 18 }}>

@@ -2,7 +2,7 @@ import React from "react";
 import { useCurrentFrame } from "remotion";
 import { ease, enter } from "../anim";
 import { COST } from "../data";
-import { Headline, Kicker, Scene, Sub } from "../components";
+import { Headline, Kicker, Narration, Scene, Sub } from "../components";
 import { C, T } from "../theme";
 
 // A one-hour bar filled with runs of one kind.
@@ -39,6 +39,7 @@ export const Budget: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <Scene>
+      <Narration k="long_budget" />
       <Kicker from={0}>The constraint</Kicker>
       <Headline from={6}>One hour of computer time buys very different amounts of data.</Headline>
       <div style={{ display: "flex", flexDirection: "column", gap: 54, marginTop: 80 }}>

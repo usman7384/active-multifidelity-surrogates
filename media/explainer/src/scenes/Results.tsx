@@ -2,7 +2,7 @@ import React from "react";
 import { useCurrentFrame } from "remotion";
 import { enter } from "../anim";
 import { FINAL } from "../data";
-import { Bar, Headline, Kicker, Scene, Sub } from "../components";
+import { Bar, Headline, Kicker, Narration, Scene, Sub } from "../components";
 import { C, T } from "../theme";
 
 // Scene 5: the measured result on the real solver, eight trials each, one CPU hour.
@@ -13,6 +13,7 @@ export const Results: React.FC = () => {
   const err = (v: number) => v.toFixed(2);
   return (
     <Scene>
+      <Narration k="long_results" />
       <Kicker from={0}>Measured on the real simulator · 8 trials each · 1 CPU hour</Kicker>
       <Headline from={6} size={76}>Prediction error on 100 unseen fine-mesh tests</Headline>
       <Sub from={14} size={T.small} color={C.muted} style={{ marginTop: 10 }}>
