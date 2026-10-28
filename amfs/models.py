@@ -8,15 +8,39 @@ from __future__ import annotations
 import numpy as np
 
 from .design_space import CASE_HI, CASE_LO, READ_AT, case_array, rows_for
-from .gp import fit_gp as _fit_gp
+from .gp import NumpyGP, fit_gp as _fit_gp, to_unit
+
+MAX_FIT_ROWS = 1000      # hyper-parameters are learned on at most this many rows; the posterior uses all rows
 
 
-def fit_gp(*args, **kw):
-    """amfs/gp.py's fit, with exact Cholesky up to 20,000 rows. GPyTorch's default switches to conjugate
-    gradients above 800 rows, which is approximate and, here, about 20% slower."""
+def fit_gp(X, y, *, lo, hi, seed: int = 0, **kw):
+    """amfs/gp.py's fit, made affordable for thousands of rows, applied the same way to every strategy.
+
+    Up to MAX_FIT_ROWS rows: the plain exact fit. Above: the hyper-parameters (length scales, signal and noise
+    variance, mean) are fitted on a random MAX_FIT_ROWS-row subsample, then the exact posterior is conditioned
+    on every row with them. Hyper-parameters settle long before the data stop helping the posterior, and the
+    fit's cost grows with the cube of its row count, so this keeps a refit to about a minute at any size.
+    Exact Cholesky throughout (GPyTorch's default switches to approximate conjugate gradients above 800 rows).
+    """
     import gpytorch
+    X, y = np.asarray(X, float), np.asarray(y, float)
+    sub = np.arange(len(y))
+    if len(y) > MAX_FIT_ROWS:
+        sub = np.sort(np.random.default_rng(seed).choice(len(y), MAX_FIT_ROWS, replace=False))
     with gpytorch.settings.max_cholesky_size(20000):
-        return _fit_gp(*args, **kw)
+        gp, info = _fit_gp(X[sub], y[sub], lo=lo, hi=hi, seed=seed, **kw)
+    if len(sub) == len(y):
+        return gp, info
+    noise = gp.noise
+    for _ in range(6):                    # all rows: add jitter only if near-duplicate rows break the Cholesky
+        try:
+            full = NumpyGP(Xu=to_unit(X, lo, hi), y=y, ls=gp.ls, outputscale=gp.outputscale, noise=noise,
+                           mean=gp.mean, lo=lo, hi=hi, names=gp.names)
+            break
+        except np.linalg.LinAlgError:
+            noise *= 10
+    info = dict(info, n_train=int(len(y)), n_hyper_fit=int(len(sub)), noise_used=float(noise))
+    return full, info
 
 LO5 = np.r_[CASE_LO, min(READ_AT)]
 HI5 = np.r_[CASE_HI, max(READ_AT)]

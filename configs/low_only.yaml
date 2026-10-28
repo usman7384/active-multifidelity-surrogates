@@ -5,10 +5,10 @@ strategy: random_lhs
 strategy_args: {fidelity: low}
 seed: 0
 budget_s: 3600
-max_rounds: 6             # caps the exact GP near 700 runs: refit time grows steeply past that, and accuracy is bias-limited well before
+max_rounds: 40            # safety only: the budget ends the run (GP hyper-parameters fit on <= 1,000 rows, so refits stay ~1 min)
 init: {n_runs: 100}
-batch: 100
-test: {n_runs: 40, seed: 12345}
+batch: 200                # cheap runs per round, about 400 CPU s: about 9 rounds to the budget
+test: {n_runs: 100, seed: 777}    # held out: never looked at while mf_lhs was designed (the pilot used 40 runs, seed 12345)
 fidelities:
   low: {nz: 4, dh_frac: 0.04}
   high: {nz: 12}

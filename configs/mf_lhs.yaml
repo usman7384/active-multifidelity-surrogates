@@ -5,9 +5,9 @@ strategy_args: {high_share: 0.3, high_pick: random}   # share of each round's so
 seed: 0
 budget_s: 3600            # solver CPU seconds for training runs, same as the other strategies
 init: {n_low: 60, n_high: 10}     # nested: the 10 high cases are the first 10 of the 60 low cases (about 410 s)
-batch: 100                # cheap Latin-hypercube runs per round (as low_only); the fine runs are on top
-max_rounds: 6             # caps the exact GP near 700 runs: refit time grows steeply past that, and accuracy is bias-limited well before
-test: {n_runs: 40, seed: 12345}
+batch: 200                # cheap Latin-hypercube runs per round (as low_only); the fine runs are on top
+max_rounds: 40            # safety only: the budget ends the run (GP hyper-parameters fit on <= 1,000 rows, so refits stay ~1 min)
+test: {n_runs: 100, seed: 777}    # held out: never looked at while mf_lhs was designed (the pilot used 40 runs, seed 12345)
 fidelities:
   low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)
   high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16
