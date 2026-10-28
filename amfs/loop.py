@@ -63,7 +63,7 @@ def run_experiment(cfg: dict, out_dir: str | Path = "results", log=print) -> dic
         if hasattr(model, "rho"):
             point["rho"] = model.rho
         history.append(point)
-        log(f"[{strategy.name}] round {rnd}: {spent:.0f} s, runs {point['n_runs']}, "
+        log(f"[{cfg.get('name', strategy.name)}] round {rnd}: {spent:.0f} s, runs {point['n_runs']}, "
             f"rmse {point['rmse']:.3f}, cov95 {point['coverage95']:.2f}")
         if spent >= cfg["budget_s"] or rnd == max_rounds - 1:   # never solve a batch that is not scored
             break

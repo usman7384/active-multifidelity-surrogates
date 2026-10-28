@@ -1,0 +1,19 @@
+[max_variance] round 0: 726 s, runs {'low': 0, 'high': 20}, rmse 1.580, cov95 0.94
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 1: 1298 s, runs {'low': 0, 'high': 30}, rmse 1.239, cov95 0.94
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 2: 1400 s, runs {'low': 0, 'high': 40}, rmse 1.060, cov95 0.89
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 3: 1685 s, runs {'low': 0, 'high': 50}, rmse 0.681, cov95 0.95
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 4: 1874 s, runs {'low': 0, 'high': 60}, rmse 0.629, cov95 0.95
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 5: 2299 s, runs {'low': 0, 'high': 70}, rmse 0.505, cov95 0.98
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 6: 2684 s, runs {'low': 0, 'high': 80}, rmse 0.452, cov95 0.98
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 7: 2960 s, runs {'low': 0, 'high': 90}, rmse 0.399, cov95 0.98
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 8: 3451 s, runs {'low': 0, 'high': 100}, rmse 0.392, cov95 0.98
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[max_variance] round 9: 3878 s, runs {'low': 0, 'high': 110}, rmse 0.477, cov95 0.97

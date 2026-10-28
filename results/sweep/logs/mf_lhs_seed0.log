@@ -1,0 +1,6 @@
+[mf_lhs] round 0: 342 s, runs {'low': 60, 'high': 10}, rmse 0.459, cov95 0.97
+[mf_lhs] round 1: 662 s, runs {'low': 160, 'high': 14}, rmse 0.286, cov95 0.95
+[mf_lhs] round 2: 938 s, runs {'low': 260, 'high': 18}, rmse 0.176, cov95 0.94
+[mf_lhs] round 3: 1237 s, runs {'low': 360, 'high': 22}, rmse 0.159, cov95 0.94
+[mf_lhs] round 4: 1559 s, runs {'low': 460, 'high': 26}, rmse 0.144, cov95 0.95
+[mf_lhs] round 5: 1918 s, runs {'low': 560, 'high': 30}, rmse 0.115, cov95 0.95

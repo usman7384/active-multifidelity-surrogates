@@ -1,0 +1,132 @@
+{
+ "name": "low_only",
+ "strategy": "random_lhs",
+ "model": "single_fidelity",
+ "seed": 3,
+ "cost_basis": "cpu_s",
+ "config": {
+  "name": "low_only",
+  "strategy": "random_lhs",
+  "strategy_args": {
+   "fidelity": "low"
+  },
+  "seed": 3,
+  "budget_s": 3600,
+  "max_rounds": 6,
+  "init": {
+   "n_runs": 100
+  },
+  "batch": 100,
+  "test": {
+   "n_runs": 40,
+   "seed": 12345
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  }
+ },
+ "test": {
+  "n_runs": 40,
+  "n_rows": 111,
+  "cost_s": 1121.7830000000001
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 243.37500000000009,
+   "n_runs": {
+    "low": 100,
+    "high": 0
+   },
+   "n_stopped_early": 1,
+   "rmse": 0.45012382339108664,
+   "coverage95": 0.9279279279279279,
+   "crps": 0.22942245321845045,
+   "mean_sd": 0.45023251673733977,
+   "n_rows": 111
+  },
+  {
+   "round": 1,
+   "cost_s": 495.99999999999994,
+   "n_runs": {
+    "low": 200,
+    "high": 0
+   },
+   "n_stopped_early": 4,
+   "rmse": 0.27916980499368194,
+   "coverage95": 0.8558558558558559,
+   "crps": 0.15074728679404986,
+   "mean_sd": 0.23662358939160605,
+   "n_rows": 111
+  },
+  {
+   "round": 2,
+   "cost_s": 731.9819999999997,
+   "n_runs": {
+    "low": 300,
+    "high": 0
+   },
+   "n_stopped_early": 8,
+   "rmse": 0.23439971260840273,
+   "coverage95": 0.8198198198198198,
+   "crps": 0.12493241979237826,
+   "mean_sd": 0.16235496807266117,
+   "n_rows": 111
+  },
+  {
+   "round": 3,
+   "cost_s": 995.1999999999996,
+   "n_runs": {
+    "low": 400,
+    "high": 0
+   },
+   "n_stopped_early": 12,
+   "rmse": 0.20841948999432366,
+   "coverage95": 0.7657657657657657,
+   "crps": 0.11027769665936311,
+   "mean_sd": 0.1238390531704801,
+   "n_rows": 111
+  },
+  {
+   "round": 4,
+   "cost_s": 1261.2569999999985,
+   "n_runs": {
+    "low": 500,
+    "high": 0
+   },
+   "n_stopped_early": 13,
+   "rmse": 0.18170073411838167,
+   "coverage95": 0.7747747747747747,
+   "crps": 0.09344912143213363,
+   "mean_sd": 0.10617799981034892,
+   "n_rows": 111
+  },
+  {
+   "round": 5,
+   "cost_s": 1516.6639999999986,
+   "n_runs": {
+    "low": 600,
+    "high": 0
+   },
+   "n_stopped_early": 17,
+   "rmse": 0.17025642337586727,
+   "coverage95": 0.8018018018018018,
+   "crps": 0.08784527181967658,
+   "mean_sd": 0.0963140150376371,
+   "n_rows": 111
+  }
+ ],
+ "created": "2026-10-28T04:27:24"
+}

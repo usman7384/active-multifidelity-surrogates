@@ -1,0 +1,16 @@
+oracle: 20 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 0: 874 s, runs {'low': 0, 'high': 20}, rmse 1.601, cov95 0.96
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 1: 1335 s, runs {'low': 0, 'high': 30}, rmse 1.203, cov95 0.87
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 2: 1731 s, runs {'low': 0, 'high': 40}, rmse 1.230, cov95 0.95
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 3: 2139 s, runs {'low': 0, 'high': 50}, rmse 0.683, cov95 0.99
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 4: 2572 s, runs {'low': 0, 'high': 60}, rmse 0.636, cov95 0.98
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 5: 3029 s, runs {'low': 0, 'high': 70}, rmse 0.610, cov95 0.97
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 6: 3443 s, runs {'low': 0, 'high': 80}, rmse 0.592, cov95 0.96
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[random_lhs] round 7: 3889 s, runs {'low': 0, 'high': 90}, rmse 0.523, cov95 0.95
