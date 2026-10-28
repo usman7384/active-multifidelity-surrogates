@@ -115,8 +115,13 @@ class MultiFidelityLHS:
     judged a fine run worth its cost, so delta stayed fitted on the 10 initial fine runs. Here:
 
         low runs:  `batch` fresh Latin-hypercube cases per round, as low_only
-        high runs: about `high_share` of the round's solver seconds, spent on the cases of this round's
-                   low batch with the largest var_delta (nested for free, and still space-filling)
+        high runs: about `high_share` of the round's solver seconds, on cases of this round's low batch
+                   (nested for free). high_pick = "random" takes the first of them (a random subset of a
+                   Latin hypercube); "variance" takes those with the largest var_delta.
+
+    "random" is the default: picking fine runs by var_delta put them in the hardest cases (fine-minus-coarse
+    residual rms 0.43 against 0.19 for random cases), so the correction learned an unrepresentative bias and
+    over-corrected everywhere else (offline correction study, seed 0).
 
     n_high * (cost_high + cost_low) = high_share * round spend, with costs the mean observed so far; at least one.
     """
@@ -124,8 +129,8 @@ class MultiFidelityLHS:
     model = "multi_fidelity"
     fidelity = "low"
 
-    def __init__(self, high_share: float = 0.3):
-        self.high_share = high_share
+    def __init__(self, high_share: float = 0.3, high_pick: str = "random"):
+        self.high_share, self.high_pick = high_share, high_pick
 
     def propose(self, evals, model, batch: int, round_idx: int, seed: int):
         cases = lhs_cases(batch, seed=seed * 1000 + round_idx + 1)
@@ -134,9 +139,12 @@ class MultiFidelityLHS:
         c_high = float(np.mean(cost["high"])) if cost["high"] else 10.0 * c_low
         # spend on high = share * (low spend + high spend), with the high cases' low runs already in the batch
         n_high = max(1, int(round(self.high_share / (1 - self.high_share) * batch * c_low / c_high)))
-        _, _, sd_d = model.components(rows_for(case_array(cases)))
-        v_delta = (sd_d ** 2).reshape(len(READ_AT), len(cases)).mean(0)
-        top = np.argsort(-v_delta)[:n_high]
+        if self.high_pick == "random":
+            top = range(n_high)
+        else:
+            _, _, sd_d = model.components(rows_for(case_array(cases)))
+            v_delta = (sd_d ** 2).reshape(len(READ_AT), len(cases)).mean(0)
+            top = np.argsort(-v_delta)[:n_high]
         return [(c, "low") for c in cases] + [(cases[i], "high") for i in top]
 
 

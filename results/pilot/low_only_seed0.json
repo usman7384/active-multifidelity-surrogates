@@ -1,0 +1,131 @@
+{
+ "name": "low_only",
+ "strategy": "random_lhs",
+ "model": "single_fidelity",
+ "seed": 0,
+ "config": {
+  "name": "low_only",
+  "strategy": "random_lhs",
+  "strategy_args": {
+   "fidelity": "low"
+  },
+  "seed": 0,
+  "budget_s": 3600,
+  "max_rounds": 6,
+  "init": {
+   "n_runs": 100
+  },
+  "batch": 100,
+  "test": {
+   "n_runs": 40,
+   "seed": 12345
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  }
+ },
+ "test": {
+  "n_runs": 40,
+  "n_rows": 111,
+  "cost_s": 1928.27
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 446.40999999999985,
+   "n_runs": {
+    "low": 100,
+    "high": 0
+   },
+   "n_stopped_early": 4,
+   "rmse": 0.5047981950364745,
+   "coverage95": 0.8828828828828829,
+   "crps": 0.26295684659538543,
+   "mean_sd": 0.4258143955506978,
+   "n_rows": 111
+  },
+  {
+   "round": 1,
+   "cost_s": 626.5499999999996,
+   "n_runs": {
+    "low": 200,
+    "high": 0
+   },
+   "n_stopped_early": 5,
+   "rmse": 0.23176070381327554,
+   "coverage95": 0.9279279279279279,
+   "crps": 0.12744846447262018,
+   "mean_sd": 0.26791426336749324,
+   "n_rows": 111
+  },
+  {
+   "round": 2,
+   "cost_s": 806.7299999999994,
+   "n_runs": {
+    "low": 300,
+    "high": 0
+   },
+   "n_stopped_early": 7,
+   "rmse": 0.18868778265635788,
+   "coverage95": 0.9459459459459459,
+   "crps": 0.10250902546871771,
+   "mean_sd": 0.1988881285537663,
+   "n_rows": 111
+  },
+  {
+   "round": 3,
+   "cost_s": 997.4199999999993,
+   "n_runs": {
+    "low": 400,
+    "high": 0
+   },
+   "n_stopped_early": 11,
+   "rmse": 0.17953413148315767,
+   "coverage95": 0.918918918918919,
+   "crps": 0.09714150382424507,
+   "mean_sd": 0.16488967578098118,
+   "n_rows": 111
+  },
+  {
+   "round": 4,
+   "cost_s": 1196.1299999999994,
+   "n_runs": {
+    "low": 500,
+    "high": 0
+   },
+   "n_stopped_early": 15,
+   "rmse": 0.16864250133250247,
+   "coverage95": 0.8288288288288288,
+   "crps": 0.0904733143270822,
+   "mean_sd": 0.11685665149855859,
+   "n_rows": 111
+  },
+  {
+   "round": 5,
+   "cost_s": 1381.6500000000003,
+   "n_runs": {
+    "low": 600,
+    "high": 0
+   },
+   "n_stopped_early": 17,
+   "rmse": 0.16243146595871436,
+   "coverage95": 0.8468468468468469,
+   "crps": 0.08675782119071603,
+   "mean_sd": 0.11695718747374188,
+   "n_rows": 111
+  }
+ ],
+ "created": "2026-10-27T23:47:31"
+}

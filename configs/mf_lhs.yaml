@@ -1,7 +1,7 @@
 # Multi-fidelity, second version: Latin-hypercube cheap runs plus about 30% of each round's solver time on fine runs.
 name: mf_lhs
 strategy: mf_lhs
-strategy_args: {high_share: 0.3}   # share of each round's solver seconds spent on fine runs
+strategy_args: {high_share: 0.3, high_pick: random}   # share of each round's solver seconds on fine runs
 seed: 0
 budget_s: 3600            # solver CPU seconds for training runs, same as the other strategies
 init: {n_low: 60, n_high: 10}     # nested: the 10 high cases are the first 10 of the 60 low cases (about 410 s)
@@ -14,3 +14,4 @@ fidelities:
 cache_dir: cache
 workers: 4
 gp: {iters: 200, restarts: 2}     # identical in every config, so only the sampling differs
+mf_model: {rho: 1.0, delta: linear}   # offline correction study: beats a GP delta and no delta with 20-30 fine runs

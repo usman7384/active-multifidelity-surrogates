@@ -29,10 +29,11 @@ def _initial(cfg: dict, strategy, oracle: Oracle, seed: int) -> list:
     """Initial design. Single fidelity: init.n_runs LHS cases at the strategy's fidelity. Multi-fidelity:
     init.n_low LHS cases at low fidelity, the first init.n_high of them also at high (nested design)."""
     init = cfg["init"]
+    s = seed * 1000          # rounds use seed * 1000 + round + 1, so seeds never share Latin-hypercube draws
     if "n_low" in init:
-        cases = lhs_cases(int(init["n_low"]), seed=seed)
+        cases = lhs_cases(int(init["n_low"]), seed=s)
         return oracle.query(cases, "low") + oracle.query(cases[: int(init["n_high"])], "high")
-    return oracle.query(lhs_cases(int(init["n_runs"]), seed=seed), strategy.fidelity)
+    return oracle.query(lhs_cases(int(init["n_runs"]), seed=s), strategy.fidelity)
 
 
 def load_config(path: str | Path) -> dict:
@@ -50,8 +51,10 @@ def run_experiment(cfg: dict, out_dir: str | Path = "results", log=print) -> dic
 
     evals = _initial(cfg, strategy, oracle, seed)
     history = []
-    for rnd in range(int(cfg.get("max_rounds", 1000))):
-        model = make_model(strategy.model, getattr(strategy, "fidelity", "high"), seed, gp_args).fit(evals)
+    max_rounds = int(cfg.get("max_rounds", 1000))
+    for rnd in range(max_rounds):
+        model = make_model(strategy.model, getattr(strategy, "fidelity", "high"), seed, gp_args,
+                           cfg.get("mf_model")).fit(evals)
         mu, sd = model.predict(Xt)
         spent = float(sum(e.cost_s for e in evals))
         point = dict(round=rnd, cost_s=spent,
@@ -62,7 +65,7 @@ def run_experiment(cfg: dict, out_dir: str | Path = "results", log=print) -> dic
         history.append(point)
         log(f"[{strategy.name}] round {rnd}: {spent:.0f} s, runs {point['n_runs']}, "
             f"rmse {point['rmse']:.3f}, cov95 {point['coverage95']:.2f}")
-        if spent >= cfg["budget_s"]:
+        if spent >= cfg["budget_s"] or rnd == max_rounds - 1:   # never solve a batch that is not scored
             break
         seen = {_key(e.case, e.fidelity) for e in evals}
         batch = []
@@ -77,6 +80,7 @@ def run_experiment(cfg: dict, out_dir: str | Path = "results", log=print) -> dic
             evals += oracle.query([c for c, f in batch if f == fid], fid)
 
     out = dict(name=cfg.get("name", strategy.name), strategy=strategy.name, model=strategy.model, seed=seed,
+               cost_basis="cpu_s",
                config=cfg,
                test=dict(n_runs=len(test), n_rows=int(len(yt)), cost_s=float(sum(e.cost_s for e in test))),
                history=history, created=time.strftime("%Y-%m-%dT%H:%M:%S"))

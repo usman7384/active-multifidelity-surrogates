@@ -4,11 +4,17 @@ Adapted from forming-surrogates (surrogates/gp_bo/solver_calls.py). Two changes:
 (a mesh resolution) instead of raw numerics, and every result carries its original solve time, so an
 experiment's budget is counted in solver seconds even when the run is later read back from the cache.
 That keeps budgets reproducible: a re-run of an experiment spends exactly the same "cost".
+
+Cost is the worker process's CPU time (cpu_s), not wall time: wall time is inflated by anything else running
+on the machine, which made early costs depend on what else was running. Cache entries from before this change
+have no cpu_s and are solved again. Cache files are written atomically, so parallel experiments can share one.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import os
+import time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
@@ -38,11 +44,14 @@ def _key(case: dict, num: dict) -> str:
 def _solve(job):
     from ringsim.solver import Numerics, RingCase, RingSolver
     case, num = job
+    t0 = time.process_time()
     res = RingSolver(RingCase(**case, reduction=RUN_TO), Numerics(**num)).run()
+    cpu_s = time.process_time() - t0
     return dict(case=case, numerics=num,
                 reduction=np.asarray(res.curves["reduction"]).tolist(),
                 id_change_pct=np.asarray(res.curves["id_change_pct"]).tolist(),
-                stopped_early=bool(res.info["stopped_early"]), runtime_s=float(res.info["runtime_s"]))
+                stopped_early=bool(res.info["stopped_early"]), runtime_s=float(res.info["runtime_s"]),
+                cpu_s=round(cpu_s, 3))
 
 
 def _read(r: dict) -> np.ndarray:
@@ -68,8 +77,9 @@ class Oracle:
         todo = []
         for i, c in enumerate(cases):
             f = self.cache / f"{_key(c, num)}.json"
-            if f.exists():
-                raw[i] = dict(json.loads(f.read_text()), cached=True)
+            r = json.loads(f.read_text()) if f.exists() else {}
+            if "cpu_s" in r:
+                raw[i] = dict(r, cached=True)
             else:
                 todo.append(i)
         if todo:
@@ -78,7 +88,10 @@ class Oracle:
                      f"({len(cases) - len(todo)} cached)")
             with ProcessPoolExecutor(max_workers=w) as ex:
                 for i, r in zip(todo, ex.map(_solve, [(cases[i], num) for i in todo])):
-                    (self.cache / f"{_key(cases[i], num)}.json").write_text(json.dumps(r))
+                    f = self.cache / f"{_key(cases[i], num)}.json"
+                    tmp = f.with_suffix(f".{os.getpid()}.tmp")
+                    tmp.write_text(json.dumps(r))
+                    os.replace(tmp, f)                  # atomic: a parallel reader never sees half a file
                     raw[i] = dict(r, cached=False)
-        return [Evaluation(case=r["case"], fidelity=fidelity, y=_read(r), cost_s=r["runtime_s"],
+        return [Evaluation(case=r["case"], fidelity=fidelity, y=_read(r), cost_s=r["cpu_s"],
                            stopped_early=r["stopped_early"], cached=r["cached"]) for r in raw]

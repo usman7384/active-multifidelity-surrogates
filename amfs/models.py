@@ -8,7 +8,15 @@ from __future__ import annotations
 import numpy as np
 
 from .design_space import CASE_HI, CASE_LO, READ_AT, case_array, rows_for
-from .gp import fit_gp
+from .gp import fit_gp as _fit_gp
+
+
+def fit_gp(*args, **kw):
+    """amfs/gp.py's fit, with exact Cholesky up to 20,000 rows. GPyTorch's default switches to conjugate
+    gradients above 800 rows, which is approximate and, here, about 20% slower."""
+    import gpytorch
+    with gpytorch.settings.max_cholesky_size(20000):
+        return _fit_gp(*args, **kw)
 
 LO5 = np.r_[CASE_LO, min(READ_AT)]
 HI5 = np.r_[CASE_HI, max(READ_AT)]
@@ -57,12 +65,20 @@ class MultiFidelityGP:
     at the high rows is ignored when fitting delta, which is reasonable once the low data are dense there; the
     strategy keeps the design nested (every high run also gets a low run) so they are.
     With fewer than MIN_HIGH_ROWS high rows, rho = 1 and delta is skipped (the prediction is the low GP).
+
+    Options: `rho` = "fit" (least squares, as above) or a fixed number; `delta` = "gp" (a GP on the input
+    columns `delta_dims`, od_id h_id mf m reduction = 0..4) or "linear" (LinearDelta). The offline correction
+    study on the cached seed-0 data found that with 20-30 random fine runs a linear delta (rho = 1) beats both
+    a GP delta and no delta: test RMSE about 0.13 against 0.16-0.24, coverage about 0.98. A GP delta on all five
+    inputs needs about 70 fine runs to win, and chases fold-over jumps when the fine runs sit in hard cases.
     """
     name = "mfgp_autoregressive"
     MIN_HIGH_ROWS = 4
 
-    def __init__(self, seed: int = 0, iters: int = 300, restarts: int = 3):
+    def __init__(self, seed: int = 0, iters: int = 300, restarts: int = 3, rho="fit", delta: str = "gp",
+                 delta_dims=(0, 1, 2, 3, 4)):
         self.seed, self.iters, self.restarts = seed, iters, restarts
+        self.rho_mode, self.delta_kind, self.dims = rho, delta, list(delta_dims)
         self.low = self.delta = None
         self.rho = 1.0
 
@@ -76,9 +92,18 @@ class MultiFidelityGP:
         self.rho, self.delta = 1.0, None
         if len(yh) >= self.MIN_HIGH_ROWS:
             mu_l, _ = self.low.predict(Xh, include_noise=False)
-            A = np.column_stack([mu_l, np.ones_like(mu_l)])
-            self.rho = float(np.linalg.lstsq(A, yh, rcond=None)[0][0])
-            self.delta, self.info["delta"] = fit_gp(Xh, yh - self.rho * mu_l, **kw)
+            if self.rho_mode == "fit":
+                A = np.column_stack([mu_l, np.ones_like(mu_l)])
+                self.rho = float(np.linalg.lstsq(A, yh, rcond=None)[0][0])
+            else:
+                self.rho = float(self.rho_mode)
+            r = yh - self.rho * mu_l
+            if self.delta_kind == "linear":
+                self.delta = LinearDelta().fit(Xh, r)
+            else:
+                self.delta = _Columns(self.dims, *fit_gp(Xh[:, self.dims], r, **dict(
+                    kw, lo=LO5[self.dims], hi=HI5[self.dims], names=tuple(map(str, self.dims)))))
+                self.info["delta"] = self.delta.info
         self.info["rho"] = self.rho
         return self
 
@@ -97,7 +122,36 @@ class MultiFidelityGP:
         return self.rho * mu_l + mu_d, np.sqrt(self.rho ** 2 * sd_l ** 2 + sd_d ** 2)
 
 
-def make_model(kind: str, fidelity: str, seed: int, gp_args: dict):
+class _Columns:
+    """A GP fitted on some input columns, called with all five."""
+    def __init__(self, dims, gp, info):
+        self.dims, self.gp, self.info = dims, gp, info
+
+    def predict(self, X, include_noise: bool = True):
+        return self.gp.predict(X[:, self.dims], include_noise=include_noise)
+
+
+class LinearDelta:
+    """delta(x) = w0 + w1 mf + w2 r + w3 mf r (unit-box friction mf and reduction r), by least squares.
+    The fidelity study's coarse bias is a smooth function of friction and reduction, so four numbers capture it;
+    the uncertainty is the residual sd (constant)."""
+    MF, RED = 2, 4
+
+    def _A(self, X):
+        u = (X - LO5) / (HI5 - LO5)
+        return np.column_stack([np.ones(len(X)), u[:, self.MF], u[:, self.RED], u[:, self.MF] * u[:, self.RED]])
+
+    def fit(self, X, r):
+        A = self._A(X)
+        self.w = np.linalg.lstsq(A, r, rcond=None)[0]
+        self.s = float(np.std(r - A @ self.w) * np.sqrt(len(r) / max(1, len(r) - A.shape[1])))
+        return self
+
+    def predict(self, X, include_noise: bool = True):
+        return self._A(X) @ self.w, np.full(len(X), self.s)
+
+
+def make_model(kind: str, fidelity: str, seed: int, gp_args: dict, mf_args: dict | None = None):
     if kind == "multi_fidelity":
-        return MultiFidelityGP(seed=seed, **gp_args)
+        return MultiFidelityGP(seed=seed, **gp_args, **(mf_args or {}))
     return SingleFidelityGP(fidelity=fidelity, seed=seed, **gp_args)

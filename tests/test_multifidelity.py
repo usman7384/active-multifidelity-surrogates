@@ -55,7 +55,7 @@ def test_multi_fidelity_experiment_smoke(tmp_path):
 
 def test_mf_lhs_experiment_smoke(tmp_path):
     cfg = load_config(ROOT / "configs/smoke_mf.yaml")
-    cfg.update(name="smoke_mf_lhs", strategy="mf_lhs", strategy_args={"high_share": 0.3},
+    cfg.update(name="smoke_mf_lhs", strategy="mf_lhs", strategy_args={"high_share": 0.3}, mf_model={"rho": 1.0, "delta": "linear"},
                cache_dir=str(tmp_path / "cache"))
     out = run_experiment(cfg, tmp_path / "results", log=lambda *_: None)
     first, last = out["history"][0], out["history"][-1]
