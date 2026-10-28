@@ -1,0 +1,8 @@
+[mf_lhs] round 0: 361 s, runs {'low': 60, 'high': 10}, rmse 0.658, cov95 0.91
+[mf_lhs] round 1: 960 s, runs {'low': 260, 'high': 17}, rmse 0.343, cov95 0.90
+[mf_lhs] round 2: 1631 s, runs {'low': 460, 'high': 25}, rmse 0.247, cov95 0.92
+[mf_lhs] round 3: 2348 s, runs {'low': 660, 'high': 33}, rmse 0.273, cov95 0.90
+[mf_lhs] round 4: 3250 s, runs {'low': 860, 'high': 41}, rmse 0.172, cov95 0.92
+oracle: 8 high-fidelity runs on 4 workers (0 cached)
+oracle: 64 low-fidelity runs on 4 workers (136 cached)
+[mf_lhs] round 5: 3856 s, runs {'low': 1060, 'high': 49}, rmse 0.157, cov95 0.89

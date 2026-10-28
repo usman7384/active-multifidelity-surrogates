@@ -1,0 +1,51 @@
+oracle: 60 low-fidelity runs on 4 workers (0 cached)
+OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
+OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
+OpenBLAS error: Memory allocation still faiTraceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\multiprocessing\spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\multiprocessing\spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\multiprocessing\spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\Projects\active-multifidelity-surrogates\scripts\run.py", line 13, in <module>
+    from amfs.loop import load_config, run_experiment  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\active-multifidelity-surrogates\amfs\loop.py", line 14, in <module>
+    import numpy as np
+  File "D:\Projects\mini-physora\forming-surrogates\.venv\Lib\site-packages\numpy\__init__.py", line 125, in <module>
+Traceback (most recent call last):
+  File "D:\Projects\active-multifidelity-surrogates\scripts\run.py", line 29, in <module>
+    main()
+  File "D:\Projects\active-multifidelity-surrogates\scripts\run.py", line 25, in main
+    run_experiment(cfg, a.out)
+  File "D:\Projects\active-multifidelity-surrogates\amfs\loop.py", line 52, in run_experiment
+    evals = _initial(cfg, strategy, oracle, seed)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\active-multifidelity-surrogates\amfs\loop.py", line 35, in _initial
+    return oracle.query(cases, "low") + oracle.query(cases[: int(init["n_high"])], "high")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\active-multifidelity-surrogates\amfs\oracle.py", line 90, in query
+    for i, r in zip(todo, ex.map(_solve, [(cases[i], num) for i in todo])):
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\concurrent\futures\process.py", line 620, in _chain_from_iterable_of_lists
+    for element in iterable:
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\concurrent\futures\_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\concurrent\futures\_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\concurrent\futures\_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mu393\AppData\Local\Python\pythoncore-3.11-64\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+concurrent.futures.process.BrokenProcessPool: A process in the process pool was terminated abruptly while the future was running or pending.

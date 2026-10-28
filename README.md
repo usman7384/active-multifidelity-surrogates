@@ -41,11 +41,29 @@ What it shows:
   hour (900 to 1,900 cheap runs) while its coverage falls from 0.77 to 0.69. More cheap data makes the GP surer
   of the coarse mesh's answer, not the fine one. `mf_lhs` keeps coverage near 0.90 in all eight seeds
   (p = 0.004). This is the main result.
-- **The accuracy gain over cheap runs is real but modest and not yet significant.** From 0.75 CPU hours
-  `mf_lhs` is about 12% more accurate (0.230 against 0.260 at 1 h; 7 of 8 seeds at 0.75 h, 6 of 8 at 1 h).
+- **Mixing meshes is also more accurate than cheap runs alone, confirmed on fresh seeds.** On seeds 1-8 the
+  gain was suggestive but not significant (6 of 8 at 1 h, p = 0.15), so a confirmation was pre-registered
+  ([PREREGISTRATION.md](PREREGISTRATION.md), committed before any run) and run on twelve new seeds; see below.
   Below 0.5 CPU hours cheap runs alone are more accurate: `mf_lhs` pays up front for fine runs.
 - **Nothing reaches 95% coverage on this test set.** The best strategies sit near 0.90, so every interval here
   is somewhat too narrow; `low_only`'s are far too narrow.
+
+### Pre-registered confirmation: `mf_lhs` against `low_only`, seeds 9-20
+
+Hypothesis, test and seeds were fixed and committed before the runs: one-sided Wilcoxon signed-rank on
+d = RMSE(`low_only`) − RMSE(`mf_lhs`) at 1.0 CPU hour, twelve seeds never run before, α = 0.05, code frozen
+([confirm.md](results/confirm/confirm.md), [data](results/confirm/confirm.json)). One restart, allowed by the
+pre-registration: the first attempt ran out of memory when a third job shared the machine; it was rerun on the
+same code and its logs are kept in `results/confirm/logs_crashed_oom_1601`.
+
+| at 1.0 CPU h, seeds 9-20 | `low_only` | `mf_lhs` |
+|---|---|---|
+| Test RMSE, mean | 0.251 | 0.178 |
+| 95% coverage, mean | 0.67 | 0.94 |
+
+- **Primary: supported, p = 0.0005.** `mf_lhs` has lower RMSE in 11 of 12 seeds (sign test p = 0.003); mean
+  relative gain 29.5%, median 34.7%. The one loss is seed 14 (0.290 against 0.255).
+- At 0.75 CPU h the gain also holds (Wilcoxon p = 0.026). Coverage is closer to 0.95 in 12 of 12 seeds.
 
 ## How it works
 
@@ -133,9 +151,9 @@ The sweep is resumable (a finished strategy and seed is skipped), and seeds draw
 
 - **One problem, one solver.** Every number is for the ring test on this solver and this mesh pair. The fine
   mesh is the reference, not the truth (it is within 0.013 points of nz = 16).
-- **Accuracy against cheap runs is not established.** About 12% lower RMSE from 0.75 CPU hours, but 6 of 8
-  seeds at 1 hour is not significant (p = 0.15). The established claims are the coverage gap over cheap runs
-  and the error gap over fine runs.
+- **The accuracy gain over cheap runs holds at 0.75-1 CPU hour, not below.** It was confirmed on twelve
+  pre-registered seeds (p = 0.0005), after being only suggestive on seeds 1-8. Its size differs between the two
+  sets (12% on seeds 1-8, 30% on seeds 9-20), so treat it as roughly 10-35%, not a precise figure.
 - **Seed 1 was looked at.** The held-out diagnosis in step 4 used seed 1's results on the held-out test set.
   Seeds 2-8 are untouched: on them alone, coverage is closer to 0.95 in 7 of 7 (p = 0.008) and RMSE lower in
   6 of 7 at 0.75 h (p = 0.06), 5 of 7 at 1 h.
@@ -145,7 +163,8 @@ The sweep is resumable (a finished strategy and seed is skipped), and seeds draw
 
 ## Next steps
 
-1. More seeds (about 16) or a larger budget, to settle whether `mf_lhs` is also more accurate than cheap runs.
+1. Integrated variance reduction (`mf_ivr`): choose case and mesh by the variance a run removes over the whole
+   space, per CPU second (exploratory run in progress).
 2. Tune the fine-run share on a validation set, and calibrate the intervals (all strategies sit near 0.90).
 3. A decision-aware acquisition that targets rings near the spec boundary, where go/check/stop verdicts flip.
 
