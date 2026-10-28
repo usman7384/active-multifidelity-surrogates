@@ -10,6 +10,9 @@ solver budget (1 CPU hour) are compared on a held-out fine-mesh test set, over e
 
 ## Result
 
+For the one-page version, see [media/result_overview.png](media/result_overview.png); for the 71-second
+animated explainer, [media/explainer.mp4](media/explainer.mp4) (source in [media/explainer](media/explainer)).
+
 ![test error and coverage against solver CPU hours, eight seeds per strategy](results/final/cost_curves.png)
 
 Thin lines: one seed each. Thick lines: the median over the eight seeds. Test set: 100 fine-mesh runs (274
