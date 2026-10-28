@@ -1,0 +1,13 @@
+oracle: 60 low-fidelity runs on 4 workers (0 cached)
+oracle: 10 high-fidelity runs on 4 workers (0 cached)
+[mf_lhs] round 0: 502 s, runs {'low': 60, 'high': 10}, rmse 0.715, cov95 0.91
+oracle: 6 high-fidelity runs on 4 workers (0 cached)
+[mf_lhs] round 1: 1202 s, runs {'low': 260, 'high': 16}, rmse 0.339, cov95 0.89
+oracle: 6 high-fidelity runs on 4 workers (0 cached)
+[mf_lhs] round 2: 1957 s, runs {'low': 460, 'high': 22}, rmse 0.216, cov95 0.90
+oracle: 5 high-fidelity runs on 4 workers (0 cached)
+[mf_lhs] round 3: 2650 s, runs {'low': 660, 'high': 27}, rmse 0.212, cov95 0.89
+oracle: 6 high-fidelity runs on 4 workers (0 cached)
+[mf_lhs] round 4: 3403 s, runs {'low': 860, 'high': 33}, rmse 0.228, cov95 0.92
+oracle: 6 high-fidelity runs on 4 workers (0 cached)
+[mf_lhs] round 5: 4136 s, runs {'low': 1060, 'high': 39}, rmse 0.219, cov95 0.89

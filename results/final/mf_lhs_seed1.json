@@ -1,0 +1,214 @@
+{
+ "name": "mf_lhs",
+ "strategy": "mf_lhs",
+ "model": "multi_fidelity",
+ "seed": 1,
+ "cost_basis": "cpu_s",
+ "config": {
+  "name": "mf_lhs",
+  "strategy": "mf_lhs",
+  "strategy_args": {
+   "high_share": 0.3,
+   "high_pick": "random"
+  },
+  "seed": 1,
+  "budget_s": 3600,
+  "init": {
+   "n_low": 60,
+   "n_high": 10
+  },
+  "batch": 200,
+  "max_rounds": 40,
+  "test": {
+   "n_runs": 100,
+   "seed": 777
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  },
+  "mf_model": {
+   "rho": 1.0,
+   "delta": "auto"
+  }
+ },
+ "test": {
+  "n_runs": 100,
+  "n_rows": 274,
+  "cost_s": 2734.2650000000003
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 557.652,
+   "n_runs": {
+    "low": 60,
+    "high": 10
+   },
+   "n_stopped_early": 5,
+   "rmse": 0.6232788590935656,
+   "coverage95": 0.9635036496350365,
+   "crps": 0.3092826888875603,
+   "mean_sd": 0.655325600094399,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.061313728939766964,
+    "gp": 0.02169851683198289
+   }
+  },
+  {
+   "round": 1,
+   "cost_s": 1101.9370000000006,
+   "n_runs": {
+    "low": 260,
+    "high": 19
+   },
+   "n_stopped_early": 11,
+   "rmse": 0.3463891756304506,
+   "coverage95": 0.8941605839416058,
+   "crps": 0.13492216082989483,
+   "mean_sd": 0.1873452009087359,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.1315306834269139,
+    "gp": 0.14179692280885456
+   }
+  },
+  {
+   "round": 2,
+   "cost_s": 1571.9299999999992,
+   "n_runs": {
+    "low": 460,
+    "high": 26
+   },
+   "n_stopped_early": 18,
+   "rmse": 0.2901164862356608,
+   "coverage95": 0.8795620437956204,
+   "crps": 0.10846152113722368,
+   "mean_sd": 0.1436474757677667,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.11103057055633904,
+    "gp": 0.13097019341674687
+   }
+  },
+  {
+   "round": 3,
+   "cost_s": 2022.1809999999994,
+   "n_runs": {
+    "low": 660,
+    "high": 33
+   },
+   "n_stopped_early": 20,
+   "rmse": 0.2702464151381727,
+   "coverage95": 0.8795620437956204,
+   "crps": 0.09743705724455914,
+   "mean_sd": 0.11490908488917256,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.3251493619939854,
+    "gp": 0.36759097366218696
+   }
+  },
+  {
+   "round": 4,
+   "cost_s": 2500.4169999999995,
+   "n_runs": {
+    "low": 860,
+    "high": 40
+   },
+   "n_stopped_early": 22,
+   "rmse": 0.22583863985169217,
+   "coverage95": 0.927007299270073,
+   "crps": 0.09225564847992213,
+   "mean_sd": 0.14813416552885245,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.30321294199496446,
+    "gp": 0.2790670298247775
+   }
+  },
+  {
+   "round": 5,
+   "cost_s": 2951.003000000001,
+   "n_runs": {
+    "low": 1060,
+    "high": 47
+   },
+   "n_stopped_early": 30,
+   "rmse": 0.22758709335144833,
+   "coverage95": 0.8795620437956204,
+   "crps": 0.08572740429559673,
+   "mean_sd": 0.09851189076755171,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.28243104596592883,
+    "gp": 0.285030436116205
+   }
+  },
+  {
+   "round": 6,
+   "cost_s": 3447.3010000000013,
+   "n_runs": {
+    "low": 1260,
+    "high": 54
+   },
+   "n_stopped_early": 36,
+   "rmse": 0.22546160352452074,
+   "coverage95": 0.8795620437956204,
+   "crps": 0.08304190822824202,
+   "mean_sd": 0.09436968515792989,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.2653222466032297,
+    "gp": 0.2662596498277816
+   }
+  },
+  {
+   "round": 7,
+   "cost_s": 3914.726000000002,
+   "n_runs": {
+    "low": 1460,
+    "high": 61
+   },
+   "n_stopped_early": 41,
+   "rmse": 0.11874045337579082,
+   "coverage95": 0.9233576642335767,
+   "crps": 0.056387190339521234,
+   "mean_sd": 0.10048338680590514,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.26051822294427307,
+    "gp": 0.25528598401569674
+   }
+  }
+ ],
+ "created": "2026-10-28T15:33:14"
+}

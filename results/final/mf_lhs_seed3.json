@@ -1,0 +1,214 @@
+{
+ "name": "mf_lhs",
+ "strategy": "mf_lhs",
+ "model": "multi_fidelity",
+ "seed": 3,
+ "cost_basis": "cpu_s",
+ "config": {
+  "name": "mf_lhs",
+  "strategy": "mf_lhs",
+  "strategy_args": {
+   "high_share": 0.3,
+   "high_pick": "random"
+  },
+  "seed": 3,
+  "budget_s": 3600,
+  "init": {
+   "n_low": 60,
+   "n_high": 10
+  },
+  "batch": 200,
+  "max_rounds": 40,
+  "test": {
+   "n_runs": 100,
+   "seed": 777
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  },
+  "mf_model": {
+   "rho": 1.0,
+   "delta": "auto"
+  }
+ },
+ "test": {
+  "n_runs": 100,
+  "n_rows": 274,
+  "cost_s": 2734.2650000000003
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 456.419,
+   "n_runs": {
+    "low": 60,
+    "high": 10
+   },
+   "n_stopped_early": 3,
+   "rmse": 0.6696605900891397,
+   "coverage95": 0.9379562043795621,
+   "crps": 0.3454166935100062,
+   "mean_sd": 0.7185654715443303,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.20762057737028355,
+    "gp": 0.18688812915685188
+   }
+  },
+  {
+   "round": 1,
+   "cost_s": 956.5430000000007,
+   "n_runs": {
+    "low": 260,
+    "high": 17
+   },
+   "n_stopped_early": 6,
+   "rmse": 0.3651723743153451,
+   "coverage95": 0.8868613138686131,
+   "crps": 0.1690295474772659,
+   "mean_sd": 0.24993820045974288,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.35182997930278004,
+    "gp": 0.12400368635247164
+   }
+  },
+  {
+   "round": 2,
+   "cost_s": 1483.4930000000004,
+   "n_runs": {
+    "low": 460,
+    "high": 23
+   },
+   "n_stopped_early": 15,
+   "rmse": 0.3079853383307847,
+   "coverage95": 0.8503649635036497,
+   "crps": 0.1396375457764469,
+   "mean_sd": 0.17100355282420523,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.3743589981972501,
+    "gp": 0.18490163438017837
+   }
+  },
+  {
+   "round": 3,
+   "cost_s": 1980.2800000000016,
+   "n_runs": {
+    "low": 660,
+    "high": 29
+   },
+   "n_stopped_early": 20,
+   "rmse": 0.3126088127910336,
+   "coverage95": 0.864963503649635,
+   "crps": 0.12812627152804837,
+   "mean_sd": 0.13190176046399504,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.33083848053709625,
+    "gp": 0.17603124578910606
+   }
+  },
+  {
+   "round": 4,
+   "cost_s": 2494.199000000001,
+   "n_runs": {
+    "low": 860,
+    "high": 35
+   },
+   "n_stopped_early": 29,
+   "rmse": 0.28872489692322245,
+   "coverage95": 0.8613138686131386,
+   "crps": 0.11335343970798901,
+   "mean_sd": 0.11754775275190009,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.3059725837160041,
+    "gp": 0.1548002454295313
+   }
+  },
+  {
+   "round": 5,
+   "cost_s": 2975.8019999999997,
+   "n_runs": {
+    "low": 1060,
+    "high": 41
+   },
+   "n_stopped_early": 37,
+   "rmse": 0.20311355871170883,
+   "coverage95": 0.9051094890510949,
+   "crps": 0.07766857140246225,
+   "mean_sd": 0.11388352530025085,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.2946729777816951,
+    "gp": 0.10783946287028512
+   }
+  },
+  {
+   "round": 6,
+   "cost_s": 3477.49,
+   "n_runs": {
+    "low": 1260,
+    "high": 48
+   },
+   "n_stopped_early": 43,
+   "rmse": 0.20712501752478726,
+   "coverage95": 0.9014598540145985,
+   "crps": 0.07507396727070866,
+   "mean_sd": 0.09230905754750442,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.2554849985182593,
+    "gp": 0.08111494943097212
+   }
+  },
+  {
+   "round": 7,
+   "cost_s": 4053.9460000000004,
+   "n_runs": {
+    "low": 1460,
+    "high": 55
+   },
+   "n_stopped_early": 50,
+   "rmse": 0.19999804616921904,
+   "coverage95": 0.8941605839416058,
+   "crps": 0.07036704929579302,
+   "mean_sd": 0.08600526186207999,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.24584438053860033,
+    "gp": 0.0727777086407277
+   }
+  }
+ ],
+ "created": "2026-10-28T12:25:02"
+}

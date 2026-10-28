@@ -5,45 +5,53 @@ well and mixing cheap and expensive meshes?**
 
 A small, focused follow-up to [forming-surrogates](https://github.com/usman7384/forming-surrogates). That
 project trained a Gaussian-process surrogate of the ring compression test on 460 solver runs from a fixed
-Latin hypercube. Here the same solver and the same GP are put in a loop, and four ways of spending a solver
-budget are compared on one fixed fine-mesh test set, over five seeds each.
+Latin hypercube. Here the same solver and the same GP are put in a loop, and four ways of spending the same
+solver budget (1 CPU hour) are compared on a held-out fine-mesh test set, over eight seeds each.
 
 ## Result
 
-![test error and coverage against solver CPU hours, five seeds per strategy](results/sweep/cost_curves.png)
+![test error and coverage against solver CPU hours, eight seeds per strategy](results/final/cost_curves.png)
 
-Thin lines: one seed each. Thick lines: the median over the five seeds, drawn only over the cost range every
-seed reached. Final scores, mean ± sd over 5 seeds ([table](results/sweep/summary.md),
-[data](results/sweep/summary.json)):
+Thin lines: one seed each. Thick lines: the median over the eight seeds. Test set: 100 fine-mesh runs (274
+rows) that were never looked at while the strategies were designed. Final scores, mean ± sd over seeds 1-8
+([table](results/final/summary.md), [data](results/final/summary.json)):
 
-| Strategy | How the next runs are chosen | Final CPU h | Runs (cheap / fine) | Test RMSE (points) | 95% coverage | CRPS |
+| Strategy | How the next runs are chosen | CPU h | Runs (cheap / fine) | Test RMSE (points) | 95% coverage | CRPS |
 |---|---|---|---|---|---|---|
-| `random_lhs` | more Latin-hypercube cases, fine mesh (the forming-surrogates approach) | 1.06 | 0 / 124 | 0.386 ± 0.081 | 0.94 ± 0.01 | 0.180 |
-| `max_variance` | fine-mesh cases where the current GP is most unsure | 1.05 | 0 / 106 | 0.608 ± 0.082 | 0.90 ± 0.06 | 0.313 |
-| `low_only` | more Latin-hypercube cases, cheap mesh only | 0.43 | 600 / 0 | 0.171 ± 0.011 | 0.84 ± 0.04 | 0.091 |
-| **`mf_lhs`** | cheap Latin-hypercube cases plus ~30% of solver time on random fine cases; multi-fidelity GP | 0.62 | 560 / 28 | **0.136 ± 0.015** | **0.93 ± 0.04** | **0.068** |
+| `random_lhs` | more Latin-hypercube cases, fine mesh (the forming-surrogates approach) | 1.05 | 0 / 125 | 0.484 ± 0.097 | 0.90 ± 0.03 | 0.215 |
+| `max_variance` | fine-mesh cases where the current GP is most unsure | 1.07 | 0 / 110 | 0.839 ± 0.115 | 0.86 ± 0.05 | 0.409 |
+| `low_only` | more Latin-hypercube cases, cheap mesh only | 1.06 | 1675 / 0 | 0.257 ± 0.026 | 0.68 ± 0.05 | 0.110 |
+| **`mf_lhs`** | cheap Latin-hypercube cases plus ~30% of solver time on random fine cases; multi-fidelity GP | 1.10 | 1160 / 50 | **0.205 ± 0.044** | **0.91 ± 0.03** | **0.080** |
+
+Paired by seed, `mf_lhs` against the other strategies at the same solver cost (one-sided sign test; with 8
+seeds, 8/8 gives p = 0.004 and 7/8 gives p = 0.035):
+
+| Against | at 0.5 CPU h | at 0.75 CPU h | at 1.0 CPU h |
+|---|---|---|---|
+| `random_lhs`, lower RMSE | 8 / 8 | 8 / 8 | 8 / 8 |
+| `low_only`, lower RMSE | 3 / 8 | 7 / 8 | 6 / 8 (p = 0.15) |
+| `low_only`, coverage closer to 0.95 | 8 / 8 | 8 / 8 | 8 / 8 |
 
 What it shows:
 
-- **Mixing meshes wins, on accuracy and on honesty.** `mf_lhs` has the lowest error and the best CRPS, and beats
-  `low_only` on both error and coverage in each of the five paired seeds. Against the forming-surrogates approach
-  (`random_lhs`) it is 2.8x more accurate for 59% of the solver time.
-- **Cheap runs alone are fast but overconfident.** `low_only` is the cheapest route to a decent error and ties
-  `mf_lhs` on error at equal cost (about 0.17 at 0.43 CPU h). But its intervals cover the fine-mesh truth only
-  84% of the time, and it stalls near the coarse mesh's bias: in the pilot the coarse-minus-fine bias at the test
-  cases was 0.14 points rms, which no number of cheap runs removes. `mf_lhs` keeps improving past that.
-- **Uncertainty-driven sampling lost, twice.** `max_variance` is worse than random fine-mesh sampling (0.61
-  against 0.39). A GP is most unsure at the edges of the box, so variance-driven picks pile up there, where
-  runs are expensive and fold over; that was measured for the first multi-fidelity strategy, which also chose
-  by variance and lost to cheap runs alone (below), and is the likely cause here too.
-- **Calibration is the reason to pay for fine runs.** About 28 fine runs (30% of the solver time) are enough to
-  learn the coarse mesh's bias, as a straight line in friction and reduction, and pull coverage from 0.84 to 0.93.
+- **Mixing meshes beats fine runs alone, clearly.** `mf_lhs` has lower error than `random_lhs` in every seed at
+  every cost, by about 2.3x at 1 CPU hour, with the same coverage. Uncertainty-driven fine sampling
+  (`max_variance`) is worse than random fine sampling.
+- **Cheap runs alone become confidently wrong.** `low_only` stalls: its error stays near 0.26 from 0.5 to 1 CPU
+  hour (900 to 1,900 cheap runs) while its coverage falls from 0.77 to 0.69. More cheap data makes the GP surer
+  of the coarse mesh's answer, not the fine one. `mf_lhs` keeps coverage near 0.90 in all eight seeds
+  (p = 0.004). This is the main result.
+- **The accuracy gain over cheap runs is real but modest and not yet significant.** From 0.75 CPU hours
+  `mf_lhs` is about 12% more accurate (0.230 against 0.260 at 1 h; 7 of 8 seeds at 0.75 h, 6 of 8 at 1 h).
+  Below 0.5 CPU hours cheap runs alone are more accurate: `mf_lhs` pays up front for fine runs.
+- **Nothing reaches 95% coverage on this test set.** The best strategies sit near 0.90, so every interval here
+  is somewhat too narrow; `low_only`'s are far too narrow.
 
 ## How it works
 
 ```
 initial LHS runs -> fit GP -> score on test set -> strategy proposes a batch -> solve -> refit -> ...
-                                                     until the solver budget or the round cap is reached
+                                                                    until the solver budget is spent
 ```
 
 - **Oracle** (`amfs/oracle.py`): the ring solver behind a cache. Every call names a fidelity (a mesh
@@ -54,12 +62,15 @@ initial LHS runs -> fit GP -> score on test set -> strategy proposes a batch -> 
 - **Data** (`amfs/design_space.py`): a case is (od_id, h_id, mf, m) in the forming-surrogates training box. Each
   run is pressed to 30.5% and read at 10, 20 and 30%, giving up to three rows of (od_id, h_id, mf, m, reduction)
   -> inner-diameter change. Runs that stop early (fold-over at high friction) give fewer rows.
-- **Models** (`amfs/models.py`): the forming-surrogates GP (Matérn 5/2, ARD, GPyTorch fit with exact Cholesky,
-  numpy serving) on one fidelity's rows; and the autoregressive multi-fidelity GP, f_high = rho * f_low + delta:
-  a GP on all cheap rows, and a correction delta fitted on the fine rows' residuals. `mf_lhs` uses rho = 1 and
-  a linear delta in friction and reduction, fitted with Huber weights (see the pilot below).
-- **Scores** (`amfs/metrics.py`): RMSE, 95% coverage, CRPS and mean predictive sd on a fixed fine-mesh test set
-  of 40 runs (111 rows; its own seed; not charged to any budget).
+- **Models** (`amfs/models.py`): the forming-surrogates GP (Matérn 5/2, ARD, exact). Above 1,000 rows its
+  hyper-parameters are fitted on a random 1,000-row subsample and the posterior is conditioned on every row, so
+  a refit stays about a minute at 5,000 rows; the rule is the same for every strategy. The multi-fidelity GP is
+  autoregressive, f_high = rho * f_low + delta: a GP on all cheap rows plus a correction delta on the fine rows'
+  residuals. `mf_lhs` uses rho = 1 and picks delta every round by 5-fold cross-validation over its fine runs:
+  a Huber-fitted straight line in friction and reduction, or a GP on all five inputs. The line wins while fine
+  runs are few, the GP once there are enough of them (about 30-60).
+- **Scores** (`amfs/metrics.py`): RMSE, 95% coverage, CRPS and mean predictive sd on the fixed fine-mesh test
+  set (its own seed; not charged to any budget).
 
 ## The fidelity pair
 
@@ -75,28 +86,33 @@ initial LHS runs -> fit GP -> score on test set -> strategy proposes a batch -> 
 | nz = 16 (reference) | 70.9 | 0 | 0 | 5 |
 
 The time step, not the mesh, is the cheap lever: 4x larger steps cut the coarse run from 12.6 s to 2.3 s for
-almost no extra error. In the sweep, on CPU time, a cheap run costs about 2 s and a fine run about 34 s. The
-coarse error is systematic: near zero at low friction and a growing over-prediction of the shrink at high
-friction, the kind of bias a correction can learn.
+almost no extra error. In the sweeps, on CPU time, a cheap run costs about 2 s and a fine run about 34 s. The
+coarse-minus-fine gap is small at low friction and on thin rings, and reaches 1-2 points on thick rings near
+fold-over at 30% reduction.
 
-## How mf_lhs came about (the pilot)
+## How mf_lhs came about
 
-The multi-fidelity strategy took three iterations on seed 0, each diagnosed offline on cached runs without new
-solves. The record is in [results/pilot](results/pilot) and [correction_study.md](results/pilot/correction_study.md).
+Each step was diagnosed offline on cached runs, without new solves. The records are in
+[results/pilot](results/pilot) ([correction_study.md](results/pilot/correction_study.md)) and the scripts in
+`scripts/correction_study/`.
 
 1. **`multi_fidelity`** (first version, `configs/multi_fidelity.yaml`, pilot only): choose case and mesh by
-   predictive variance removed per solver second. It lost to cheap runs alone (RMSE 0.25 against 0.16). 82% of
-   its cheap runs landed within 10% of a box edge (58% for a Latin hypercube), and it never judged a fine run
-   worth its cost.
-2. **`mf_lhs` with variance-picked fine runs and a GP correction**: still worse than cheap runs alone. The
-   correction was twice the size of the real coarse-minus-fine gap. Variance put the fine runs in the hardest
-   cases, where the residual is 0.43 points rms against 0.19 at random cases, so the correction learned an
-   unrepresentative bias. Trained on random fine runs instead, a linear correction in friction and reduction
-   reached RMSE about 0.13 with coverage about 0.98 offline. A GP correction on all five inputs needed about 70
-   fine runs to compete.
-3. **`mf_lhs` with random fine runs and a least-squares linear correction**: good until one fine run with a
-   2.6-point residual (a thick ring near fold-over at 30% reduction) tilted the line. A Huber fit and a
-   MAD-based interval width took seed 0 from 0.236 to 0.115 at coverage 0.95. That is the version in the sweep.
+   predictive variance removed per solver second. It lost to cheap runs alone (RMSE 0.25 against 0.16 on the
+   pilot test set). 82% of its cheap runs landed within 10% of a box edge (58% for a Latin hypercube), and it
+   never judged a fine run worth its cost.
+2. **Variance-picked fine runs, GP correction**: still worse than cheap runs alone. Variance put the fine runs in
+   the hardest cases (residual 0.43 points rms, against 0.19 at random cases), so the correction learned an
+   unrepresentative bias and over-corrected. Fine runs are now a random subset of each round's cheap batch.
+3. **Random fine runs, least-squares line**: one fine run with a 2.6-point residual tilted the line; a Huber fit
+   and a MAD-based interval width fixed it on the pilot data (seed 0: 0.236 to 0.115, coverage 0.95).
+4. **Held-out check, cross-validated correction**: on the held-out test set with the full budget, the line
+   stalled with `low_only` (seed 1: 0.233). The thick-ring gap the Huber fit treats as outliers is real and
+   common there, and with 61 fine runs a GP correction resolves it (0.119, coverage 0.92). The choice between
+   the two is now made each round by cross-validation over the fine runs. That is valid only because the fine
+   runs are random; with the variance-picked runs of step 2 it disagreed with the test set.
+
+The first five-seed sweep ([results/sweep](results/sweep)) used the pilot test set, a 6-round cap and step 3's
+correction; it is kept as a record and superseded by `results/final`.
 
 ## Run
 
@@ -104,36 +120,34 @@ solves. The record is in [results/pilot](results/pilot) and [correction_study.md
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python -m pytest -q                                      # about 1 minute, includes three tiny experiments
-python scripts/run.py configs/mf_lhs.yaml --seed 0       # one experiment, about 15 minutes on 4 workers
-python scripts/sweep.py --configs random_lhs max_variance low_only mf_lhs --seeds 0 1 2 3 4 --parallel 2
-python scripts/summarize.py results/sweep                # figure and table (sweep.py also runs it after each job)
+python scripts/run.py configs/mf_lhs.yaml --seed 1       # one experiment, about 15-20 minutes on 4 workers
+python scripts/sweep.py --configs random_lhs max_variance low_only mf_lhs --seeds 1 2 3 4 5 6 7 8 \
+    --parallel 2 --out results/final                     # about 4 hours on 8 cores
+python scripts/summarize.py results/final                # figure, table, paired tests (sweep.py runs it too)
 ```
 
-The full sweep took about 3.3 hours on a 16-thread laptop, two experiments at a time. It is resumable: a
-finished (strategy, seed) result is skipped. Seeds draw separate Latin hypercubes (`seed * 1000 + round`).
+The sweep is resumable (a finished strategy and seed is skipped), and seeds draw separate Latin hypercubes
+(`seed * 1000 + round`).
 
 ## Caveats
 
-- **One problem, one solver.** Every number here is for the ring test on this solver and this mesh pair. The
-  fine mesh is the reference, not the truth (it is within 0.013 points of nz = 16).
-- **Unequal final costs.** `low_only` and `mf_lhs` stop at a 6-round cap (exact-GP refits grow steeply past
-  about 600 cheap runs), well before the 3,600 s budget; the fine-mesh strategies run to the budget. Compare
-  along the cost axis, not by the final row alone.
-- **The design was tuned on seed 0.** The three fixes above were chosen by looking at seed 0's test error, so
-  seed 0 is not independent evidence. Seeds 1-4 are, and `mf_lhs` beats `low_only` on error and coverage in all
-  four.
-- **40 test runs.** Coverage is measured on 111 rows, so a single coverage figure has a sampling sd of about
-  0.025.
-- **CPU time** was measured with two experiments sharing the machine; that inflates every strategy's cost
-  similarly but not exactly.
+- **One problem, one solver.** Every number is for the ring test on this solver and this mesh pair. The fine
+  mesh is the reference, not the truth (it is within 0.013 points of nz = 16).
+- **Accuracy against cheap runs is not established.** About 12% lower RMSE from 0.75 CPU hours, but 6 of 8
+  seeds at 1 hour is not significant (p = 0.15). The established claims are the coverage gap over cheap runs
+  and the error gap over fine runs.
+- **Seed 1 was looked at.** The held-out diagnosis in step 4 used seed 1's results on the held-out test set.
+  Seeds 2-8 are untouched: on them alone, coverage is closer to 0.95 in 7 of 7 (p = 0.008) and RMSE lower in
+  6 of 7 at 0.75 h (p = 0.06), 5 of 7 at 1 h.
+- **Coverage is below 0.95 for every strategy** (0.90 at best), so no interval here is fully calibrated.
+- **The fine-run share (30%) and the batch sizes were not tuned.** CPU time was measured with two experiments
+  sharing the machine, which inflates every strategy's cost similarly but not exactly.
 
 ## Next steps
 
-1. Lift the round cap with a sparse or warm-started GP, to show where `low_only` stalls and how far `mf_lhs`
-   keeps falling.
-2. Tune the fine-run share (`high_share`): 30% was a first guess.
+1. More seeds (about 16) or a larger budget, to settle whether `mf_lhs` is also more accurate than cheap runs.
+2. Tune the fine-run share on a validation set, and calibrate the intervals (all strategies sit near 0.90).
 3. A decision-aware acquisition that targets rings near the spec boundary, where go/check/stop verdicts flip.
-4. Check coverage by region (high friction, near fold-over), not only overall.
 
 ## Provenance
 

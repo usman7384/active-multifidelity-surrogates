@@ -1,0 +1,10 @@
+[max_variance] round 0: 726 s, runs {'low': 0, 'high': 20}, rmse 1.844, cov95 0.86
+[max_variance] round 1: 1298 s, runs {'low': 0, 'high': 30}, rmse 1.508, cov95 0.85
+[max_variance] round 2: 1400 s, runs {'low': 0, 'high': 40}, rmse 1.212, cov95 0.82
+[max_variance] round 3: 1685 s, runs {'low': 0, 'high': 50}, rmse 1.314, cov95 0.91
+[max_variance] round 4: 1874 s, runs {'low': 0, 'high': 60}, rmse 1.252, cov95 0.88
+[max_variance] round 5: 2299 s, runs {'low': 0, 'high': 70}, rmse 1.101, cov95 0.89
+[max_variance] round 6: 2684 s, runs {'low': 0, 'high': 80}, rmse 1.029, cov95 0.89
+[max_variance] round 7: 2960 s, runs {'low': 0, 'high': 90}, rmse 0.982, cov95 0.88
+[max_variance] round 8: 3451 s, runs {'low': 0, 'high': 100}, rmse 0.977, cov95 0.88
+[max_variance] round 9: 3878 s, runs {'low': 0, 'high': 110}, rmse 0.838, cov95 0.89

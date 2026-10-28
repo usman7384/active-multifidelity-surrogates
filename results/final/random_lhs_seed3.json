@@ -1,0 +1,212 @@
+{
+ "name": "random_lhs",
+ "strategy": "random_lhs",
+ "model": "single_fidelity",
+ "seed": 3,
+ "cost_basis": "cpu_s",
+ "config": {
+  "name": "random_lhs",
+  "strategy": "random_lhs",
+  "seed": 3,
+  "budget_s": 3600,
+  "init": {
+   "n_runs": 20
+  },
+  "batch": 10,
+  "test": {
+   "n_runs": 100,
+   "seed": 777
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  }
+ },
+ "test": {
+  "n_runs": 100,
+  "n_rows": 274,
+  "cost_s": 2734.2650000000003
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 632.767,
+   "n_runs": {
+    "low": 0,
+    "high": 20
+   },
+   "n_stopped_early": 5,
+   "rmse": 2.036223036043669,
+   "coverage95": 0.8503649635036497,
+   "crps": 0.9183860857765548,
+   "mean_sd": 1.114493151385713,
+   "n_rows": 274
+  },
+  {
+   "round": 1,
+   "cost_s": 900.454,
+   "n_runs": {
+    "low": 0,
+    "high": 30
+   },
+   "n_stopped_early": 8,
+   "rmse": 1.6849751308991447,
+   "coverage95": 0.7700729927007299,
+   "crps": 0.8297516954840751,
+   "mean_sd": 0.7748088721913089,
+   "n_rows": 274
+  },
+  {
+   "round": 2,
+   "cost_s": 1190.767,
+   "n_runs": {
+    "low": 0,
+    "high": 40
+   },
+   "n_stopped_early": 9,
+   "rmse": 1.3462592572655416,
+   "coverage95": 0.8248175182481752,
+   "crps": 0.6249430470212916,
+   "mean_sd": 0.6999025239301357,
+   "n_rows": 274
+  },
+  {
+   "round": 3,
+   "cost_s": 1473.142,
+   "n_runs": {
+    "low": 0,
+    "high": 50
+   },
+   "n_stopped_early": 13,
+   "rmse": 1.021752329438874,
+   "coverage95": 0.8503649635036497,
+   "crps": 0.4954124890741484,
+   "mean_sd": 0.6280290791073927,
+   "n_rows": 274
+  },
+  {
+   "round": 4,
+   "cost_s": 1767.7659999999998,
+   "n_runs": {
+    "low": 0,
+    "high": 60
+   },
+   "n_stopped_early": 15,
+   "rmse": 0.823399269852955,
+   "coverage95": 0.8978102189781022,
+   "crps": 0.39712223469813535,
+   "mean_sd": 0.5615461239004282,
+   "n_rows": 274
+  },
+  {
+   "round": 5,
+   "cost_s": 2065.4999999999995,
+   "n_runs": {
+    "low": 0,
+    "high": 70
+   },
+   "n_stopped_early": 16,
+   "rmse": 0.6885955103963031,
+   "coverage95": 0.9343065693430657,
+   "crps": 0.32384187012605337,
+   "mean_sd": 0.5621834579774976,
+   "n_rows": 274
+  },
+  {
+   "round": 6,
+   "cost_s": 2380.4049999999993,
+   "n_runs": {
+    "low": 0,
+    "high": 80
+   },
+   "n_stopped_early": 18,
+   "rmse": 0.6593387415411698,
+   "coverage95": 0.916058394160584,
+   "crps": 0.2979744399613237,
+   "mean_sd": 0.5115740146987371,
+   "n_rows": 274
+  },
+  {
+   "round": 7,
+   "cost_s": 2684.513999999999,
+   "n_runs": {
+    "low": 0,
+    "high": 90
+   },
+   "n_stopped_early": 21,
+   "rmse": 0.6097018224419889,
+   "coverage95": 0.9233576642335767,
+   "crps": 0.2667489310439558,
+   "mean_sd": 0.47047070972990157,
+   "n_rows": 274
+  },
+  {
+   "round": 8,
+   "cost_s": 2971.7799999999993,
+   "n_runs": {
+    "low": 0,
+    "high": 100
+   },
+   "n_stopped_early": 24,
+   "rmse": 0.6108513974110789,
+   "coverage95": 0.927007299270073,
+   "crps": 0.25680017970339775,
+   "mean_sd": 0.43163740534781947,
+   "n_rows": 274
+  },
+  {
+   "round": 9,
+   "cost_s": 3255.6719999999996,
+   "n_runs": {
+    "low": 0,
+    "high": 110
+   },
+   "n_stopped_early": 26,
+   "rmse": 0.5602182160642261,
+   "coverage95": 0.9197080291970803,
+   "crps": 0.24132580385481492,
+   "mean_sd": 0.3936415366905944,
+   "n_rows": 274
+  },
+  {
+   "round": 10,
+   "cost_s": 3588.1559999999995,
+   "n_runs": {
+    "low": 0,
+    "high": 120
+   },
+   "n_stopped_early": 27,
+   "rmse": 0.5318646545730983,
+   "coverage95": 0.9233576642335767,
+   "crps": 0.21646600485882042,
+   "mean_sd": 0.35640896550113765,
+   "n_rows": 274
+  },
+  {
+   "round": 11,
+   "cost_s": 3841.1559999999995,
+   "n_runs": {
+    "low": 0,
+    "high": 130
+   },
+   "n_stopped_early": 28,
+   "rmse": 0.44878210172509114,
+   "coverage95": 0.916058394160584,
+   "crps": 0.19566853377874238,
+   "mean_sd": 0.31295273361394144,
+   "n_rows": 274
+  }
+ ],
+ "created": "2026-10-28T12:04:38"
+}

@@ -1,0 +1,11 @@
+[random_lhs] round 0: 726 s, runs {'low': 0, 'high': 20}, rmse 1.844, cov95 0.86
+[random_lhs] round 1: 1087 s, runs {'low': 0, 'high': 30}, rmse 1.591, cov95 0.86
+[random_lhs] round 2: 1400 s, runs {'low': 0, 'high': 40}, rmse 0.931, cov95 0.89
+[random_lhs] round 3: 1726 s, runs {'low': 0, 'high': 50}, rmse 0.923, cov95 0.86
+[random_lhs] round 4: 2023 s, runs {'low': 0, 'high': 60}, rmse 0.804, cov95 0.86
+[random_lhs] round 5: 2320 s, runs {'low': 0, 'high': 70}, rmse 0.728, cov95 0.86
+[random_lhs] round 6: 2602 s, runs {'low': 0, 'high': 80}, rmse 0.708, cov95 0.86
+[random_lhs] round 7: 2885 s, runs {'low': 0, 'high': 90}, rmse 0.590, cov95 0.86
+[random_lhs] round 8: 3181 s, runs {'low': 0, 'high': 100}, rmse 0.543, cov95 0.88
+[random_lhs] round 9: 3426 s, runs {'low': 0, 'high': 110}, rmse 0.516, cov95 0.88
+[random_lhs] round 10: 3726 s, runs {'low': 0, 'high': 120}, rmse 0.475, cov95 0.87

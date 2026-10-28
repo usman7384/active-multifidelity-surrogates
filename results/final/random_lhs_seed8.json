@@ -1,0 +1,212 @@
+{
+ "name": "random_lhs",
+ "strategy": "random_lhs",
+ "model": "single_fidelity",
+ "seed": 8,
+ "cost_basis": "cpu_s",
+ "config": {
+  "name": "random_lhs",
+  "strategy": "random_lhs",
+  "seed": 8,
+  "budget_s": 3600,
+  "init": {
+   "n_runs": 20
+  },
+  "batch": 10,
+  "test": {
+   "n_runs": 100,
+   "seed": 777
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  }
+ },
+ "test": {
+  "n_runs": 100,
+  "n_rows": 274,
+  "cost_s": 2734.2650000000003
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 717.8599999999999,
+   "n_runs": {
+    "low": 0,
+    "high": 20
+   },
+   "n_stopped_early": 6,
+   "rmse": 2.1793064600335135,
+   "coverage95": 0.9087591240875912,
+   "crps": 1.0096709501997545,
+   "mean_sd": 1.5794412551585586,
+   "n_rows": 274
+  },
+  {
+   "round": 1,
+   "cost_s": 988.111,
+   "n_runs": {
+    "low": 0,
+    "high": 30
+   },
+   "n_stopped_early": 8,
+   "rmse": 1.46050512212743,
+   "coverage95": 0.8941605839416058,
+   "crps": 0.7089982029501574,
+   "mean_sd": 0.9486036707226161,
+   "n_rows": 274
+  },
+  {
+   "round": 2,
+   "cost_s": 1273.8310000000001,
+   "n_runs": {
+    "low": 0,
+    "high": 40
+   },
+   "n_stopped_early": 11,
+   "rmse": 1.13746445698347,
+   "coverage95": 0.8722627737226277,
+   "crps": 0.5449226553774501,
+   "mean_sd": 0.7560942176703213,
+   "n_rows": 274
+  },
+  {
+   "round": 3,
+   "cost_s": 1572.205,
+   "n_runs": {
+    "low": 0,
+    "high": 50
+   },
+   "n_stopped_early": 13,
+   "rmse": 0.8364373707562626,
+   "coverage95": 0.8978102189781022,
+   "crps": 0.3823426478975612,
+   "mean_sd": 0.6315112376459217,
+   "n_rows": 274
+  },
+  {
+   "round": 4,
+   "cost_s": 1881.8449999999998,
+   "n_runs": {
+    "low": 0,
+    "high": 60
+   },
+   "n_stopped_early": 15,
+   "rmse": 0.6767851290653842,
+   "coverage95": 0.9708029197080292,
+   "crps": 0.3240280366206427,
+   "mean_sd": 0.7191157732987535,
+   "n_rows": 274
+  },
+  {
+   "round": 5,
+   "cost_s": 2184.58,
+   "n_runs": {
+    "low": 0,
+    "high": 70
+   },
+   "n_stopped_early": 17,
+   "rmse": 0.6924722053591551,
+   "coverage95": 0.9671532846715328,
+   "crps": 0.31334387267775066,
+   "mean_sd": 0.6216045064350108,
+   "n_rows": 274
+  },
+  {
+   "round": 6,
+   "cost_s": 2481.94,
+   "n_runs": {
+    "low": 0,
+    "high": 80
+   },
+   "n_stopped_early": 20,
+   "rmse": 0.5342926879721571,
+   "coverage95": 0.9781021897810219,
+   "crps": 0.2566659464629354,
+   "mean_sd": 0.5531929807929857,
+   "n_rows": 274
+  },
+  {
+   "round": 7,
+   "cost_s": 2757.815,
+   "n_runs": {
+    "low": 0,
+    "high": 90
+   },
+   "n_stopped_early": 23,
+   "rmse": 0.46013208652006415,
+   "coverage95": 0.9744525547445255,
+   "crps": 0.21351463095336615,
+   "mean_sd": 0.4621972518788822,
+   "n_rows": 274
+  },
+  {
+   "round": 8,
+   "cost_s": 3017.753,
+   "n_runs": {
+    "low": 0,
+    "high": 100
+   },
+   "n_stopped_early": 24,
+   "rmse": 0.3987355710971551,
+   "coverage95": 0.9598540145985401,
+   "crps": 0.19762324618961172,
+   "mean_sd": 0.4241245020926894,
+   "n_rows": 274
+  },
+  {
+   "round": 9,
+   "cost_s": 3284.159,
+   "n_runs": {
+    "low": 0,
+    "high": 110
+   },
+   "n_stopped_early": 26,
+   "rmse": 0.32570579832648205,
+   "coverage95": 0.9598540145985401,
+   "crps": 0.17114494786195453,
+   "mean_sd": 0.383215369984857,
+   "n_rows": 274
+  },
+  {
+   "round": 10,
+   "cost_s": 3576.471,
+   "n_runs": {
+    "low": 0,
+    "high": 120
+   },
+   "n_stopped_early": 28,
+   "rmse": 0.30276374977831205,
+   "coverage95": 0.9635036496350365,
+   "crps": 0.15737171018718812,
+   "mean_sd": 0.3479327924526378,
+   "n_rows": 274
+  },
+  {
+   "round": 11,
+   "cost_s": 3885.362,
+   "n_runs": {
+    "low": 0,
+    "high": 130
+   },
+   "n_stopped_early": 30,
+   "rmse": 0.28882619366543766,
+   "coverage95": 0.9562043795620438,
+   "crps": 0.14840945385426196,
+   "mean_sd": 0.3209090021472412,
+   "n_rows": 274
+  }
+ ],
+ "created": "2026-10-28T15:03:11"
+}
