@@ -8,7 +8,7 @@ budget_s: 3600
 max_rounds: 40            # safety only: the budget ends the run (GP hyper-parameters fit on <= 1,000 rows, so refits stay ~1 min)
 init: {n_runs: 100}
 batch: 200                # cheap runs per round, about 400 CPU s: about 9 rounds to the budget
-test: {n_runs: 100, seed: 777}    # held out: never looked at while mf_lhs was designed (the pilot used 40 runs, seed 12345)
+test: {n_runs: 100, seed: 777}    # held-out fine-mesh test set, its own seed
 fidelities:
   low: {nz: 4, dh_frac: 0.04}
   high: {nz: 12}

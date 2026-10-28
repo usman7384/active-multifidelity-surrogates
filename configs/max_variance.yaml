@@ -6,7 +6,7 @@ seed: 0
 budget_s: 3600            # solver CPU seconds for training runs (about 130 nz12 runs)
 init: {n_runs: 20}
 batch: 10
-test: {n_runs: 100, seed: 777}    # held out: never looked at while mf_lhs was designed (the pilot used 40 runs, seed 12345)
+test: {n_runs: 100, seed: 777}    # held-out fine-mesh test set, its own seed
 fidelities:
   low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)
   high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16

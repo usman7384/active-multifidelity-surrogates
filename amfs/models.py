@@ -81,7 +81,7 @@ class MultiFidelityGP:
 
     1. A GP on every low-fidelity row (cheap, many) gives mu_low, sd_low.
     2. rho by least squares of y_high on mu_low at the high-fidelity rows (with an intercept, which delta's
-       constant mean then absorbs). A first version: the joint maximum-likelihood fit of rho is a later upgrade.
+       constant mean then absorbs).
     3. A second GP, delta, on the residuals y_high - rho * mu_low(x) at the high rows (few, smooth: the fidelity
        study shows the coarse error is a slowly varying bias that grows with friction).
 
@@ -91,15 +91,10 @@ class MultiFidelityGP:
     With fewer than MIN_HIGH_ROWS high rows, rho = 1 and delta is skipped (the prediction is the low GP).
 
     Options: `rho` = "fit" (least squares, as above) or a fixed number; `delta` = "gp" (a GP on the input
-    columns `delta_dims`, od_id h_id mf m reduction = 0..4) or "linear" (LinearDelta). The offline correction
-    study on the cached seed-0 data found that with 20-30 random fine runs a linear delta (rho = 1) beats both
-    a GP delta and no delta: test RMSE about 0.13 against 0.16-0.24, coverage about 0.98. A GP delta on all five
-    inputs needs about 70 fine runs to win, and chases fold-over jumps when the fine runs sit in hard cases.
-    `delta` = "auto" picks between the two every fit by K-fold cross-validation over the fine RUNS (all rows of
-    a run in the same fold), so the choice follows the data: the linear delta while fine runs are few, the GP
-    delta once they are enough to resolve the large gap on thick rings near fold-over (held-out diagnosis,
-    seed 1: 61 fine runs, linear 0.233 RMSE against GP 0.119). Cross-validation is only meaningful because the
-    fine runs are a random sample; with variance-picked runs it disagreed with the test set.
+    columns `delta_dims`, od_id h_id mf m reduction = 0..4), "linear" (LinearDelta: a robust straight line in
+    friction and reduction, enough while fine runs are few) or "auto", which picks between the two at every fit
+    by K-fold cross-validation over the fine RUNS (all rows of a run in the same fold). Cross-validation assumes
+    the fine runs are a random sample of the space.
     """
     name = "mfgp_autoregressive"
     MIN_HIGH_ROWS = 4

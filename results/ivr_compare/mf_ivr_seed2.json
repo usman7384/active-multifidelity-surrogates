@@ -33,7 +33,7 @@
     "nz": 12
    }
   },
-  "cache_dir": "D:/Projects/active-multifidelity-surrogates/cache",
+  "cache_dir": "cache",
   "workers": 4,
   "gp": {
    "iters": 200,
