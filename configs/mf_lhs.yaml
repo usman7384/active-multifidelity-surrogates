@@ -14,4 +14,4 @@ fidelities:
 cache_dir: cache
 workers: 4
 gp: {iters: 200, restarts: 2}     # identical in every config, so only the sampling differs
-mf_model: {rho: 1.0, delta: linear}   # offline correction study: beats a GP delta and no delta with 20-30 fine runs
+mf_model: {rho: 1.0, delta: auto}   # linear or GP correction, chosen each round by 5-fold CV over the fine runs

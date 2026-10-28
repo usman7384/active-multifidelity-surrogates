@@ -62,6 +62,8 @@ def run_experiment(cfg: dict, out_dir: str | Path = "results", log=print) -> dic
                      n_stopped_early=sum(e.stopped_early for e in evals), **score(yt, mu, sd))
         if hasattr(model, "rho"):
             point["rho"] = model.rho
+            point["delta"] = getattr(model, "delta_choice", None)
+            point["delta_cv"] = model.info.get("delta_cv")
         history.append(point)
         log(f"[{cfg.get('name', strategy.name)}] round {rnd}: {spent:.0f} s, runs {point['n_runs']}, "
             f"rmse {point['rmse']:.3f}, cov95 {point['coverage95']:.2f}")

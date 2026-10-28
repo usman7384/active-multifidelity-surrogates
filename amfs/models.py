@@ -95,9 +95,15 @@ class MultiFidelityGP:
     study on the cached seed-0 data found that with 20-30 random fine runs a linear delta (rho = 1) beats both
     a GP delta and no delta: test RMSE about 0.13 against 0.16-0.24, coverage about 0.98. A GP delta on all five
     inputs needs about 70 fine runs to win, and chases fold-over jumps when the fine runs sit in hard cases.
+    `delta` = "auto" picks between the two every fit by K-fold cross-validation over the fine RUNS (all rows of
+    a run in the same fold), so the choice follows the data: the linear delta while fine runs are few, the GP
+    delta once they are enough to resolve the large gap on thick rings near fold-over (held-out diagnosis,
+    seed 1: 61 fine runs, linear 0.233 RMSE against GP 0.119). Cross-validation is only meaningful because the
+    fine runs are a random sample; with variance-picked runs it disagreed with the test set.
     """
     name = "mfgp_autoregressive"
     MIN_HIGH_ROWS = 4
+    CV_FOLDS, CV_MIN_RUNS = 5, 10          # "auto": cross-validate only once there are CV_MIN_RUNS fine runs
 
     def __init__(self, seed: int = 0, iters: int = 300, restarts: int = 3, rho="fit", delta: str = "gp",
                  delta_dims=(0, 1, 2, 3, 4)):
@@ -122,14 +128,38 @@ class MultiFidelityGP:
             else:
                 self.rho = float(self.rho_mode)
             r = yh - self.rho * mu_l
-            if self.delta_kind == "linear":
-                self.delta = LinearDelta().fit(Xh, r)
-            else:
-                self.delta = _Columns(self.dims, *fit_gp(Xh[:, self.dims], r, **dict(
-                    kw, lo=LO5[self.dims], hi=HI5[self.dims], names=tuple(map(str, self.dims)))))
+            kind = self.delta_kind if self.delta_kind != "auto" else self._choose(Xh, r, kw)
+            self.delta = self._fit_delta(kind, Xh, r, kw)
+            self.info["delta_kind"] = self.delta_choice = kind
+            if kind == "gp":
                 self.info["delta"] = self.delta.info
         self.info["rho"] = self.rho
         return self
+
+    def _fit_delta(self, kind, X, r, kw):
+        if kind == "linear":
+            return LinearDelta().fit(X, r)
+        d = self.dims
+        return _Columns(d, *fit_gp(X[:, d], r, **dict(kw, lo=LO5[d], hi=HI5[d], names=tuple(map(str, d)))))
+
+    def _choose(self, Xh, r, kw) -> str:
+        """K-fold cross-validated RMSE of each delta over the fine runs; the lower one wins (ties: linear)."""
+        _, run = np.unique(np.round(Xh[:, :4], 9), axis=0, return_inverse=True)
+        run = run.ravel()
+        n_runs = run.max() + 1
+        if n_runs < self.CV_MIN_RUNS:
+            self.info["delta_cv"] = None
+            return "linear"
+        fold = np.random.default_rng(self.seed).permutation(n_runs) % self.CV_FOLDS
+        err = {"linear": [], "gp": []}
+        for k in range(self.CV_FOLDS):
+            te = fold[run] == k
+            for kind in err:
+                pred = self._fit_delta(kind, Xh[~te], r[~te], dict(kw, n_restarts=1)).predict(Xh[te])[0]
+                err[kind].append(pred - r[te])
+        cv = {k: float(np.sqrt(np.mean(np.concatenate(v) ** 2))) for k, v in err.items()}
+        self.info["delta_cv"] = cv
+        return "gp" if cv["gp"] < cv["linear"] else "linear"
 
     def components(self, X: np.ndarray) -> tuple[float, np.ndarray, np.ndarray]:
         """(rho, sd_low, sd_delta) at X: the two parts of the predictive uncertainty, for the strategy.
