@@ -157,13 +157,18 @@ class MultiFidelityIVR:
     later picks account for what earlier ones will teach. A fine pick also schedules the cheap run at the same
     case (nested design) unless one is already in the batch. Unlike MultiFidelity (point-wise variance), a run
     at the edge of the box scores low: it removes variance only in the half-neighbourhood inside the box.
+
+    `min_high_share`: a floor on the share of each round's CPU seconds spent on fine runs. Without it (seeds 1-8,
+    results/ivr) the greedy rule under-bought fine runs in 5 of 8 seeds (19-35 against 49-69 in the 3 seeds that
+    did best): while fine runs are few, the correction's own variance is poorly estimated, so its reductions look
+    small. If the greedy batch ends below the floor, more fine runs are added, still in IVR order, until it holds.
     """
     name = "mf_ivr"
     model = "multi_fidelity"
     fidelity = "low"
 
-    def __init__(self, pool: int = 1024, n_ref: int = 300, round_s: float = 600.0):
-        self.pool, self.n_ref, self.round_s = pool, n_ref, round_s
+    def __init__(self, pool: int = 1024, n_ref: int = 300, round_s: float = 600.0, min_high_share: float = 0.0):
+        self.pool, self.n_ref, self.round_s, self.min_high_share = pool, n_ref, round_s, min_high_share
 
     def propose(self, evals, model, batch: int, round_idx: int, seed: int):
         from .ivr import GreedyIVR, delta_cov, gp_cov
@@ -181,21 +186,37 @@ class MultiFidelityIVR:
         c_high = float(np.mean(cost["high"])) if cost["high"] else 10.0 * c_low
         rho2 = model.rho ** 2
         has_low, has_high = np.zeros(nc, bool), np.zeros(nc, bool)
-        out, spent = [], 0.0
-        while spent < self.round_s and not has_low.all():
+        out, spent, spent_high = [], 0.0, 0.0
+
+        def scores():
             r_low = rho2 * low.reductions()
             r_dlt = dlt.reductions() if dlt is not None else np.zeros(nc)
             s_low = np.where(has_low, -np.inf, r_low / c_low)
             extra = np.where(has_low, 0.0, c_low)
             s_high = np.where(has_high | (dlt is None), -np.inf,
                               (r_dlt + np.where(has_low, 0.0, r_low)) / (c_high + extra))
+            return s_low, s_high
+
+        def pick_low(j):
+            nonlocal spent
+            low.pick(j); has_low[j] = True; out.append((to_case(C[j]), "low")); spent += c_low
+
+        def pick_high(j):
+            nonlocal spent, spent_high
+            if not has_low[j]:
+                pick_low(j)                                           # nested design
+            dlt.pick(j); has_high[j] = True; out.append((to_case(C[j]), "high")); spent += c_high; spent_high += c_high
+
+        while spent < self.round_s and not has_low.all():
+            s_low, s_high = scores()
             j_l, j_h = int(np.argmax(s_low)), int(np.argmax(s_high))
             if s_high[j_h] > s_low[j_l]:
-                if not has_low[j_h]:
-                    low.pick(j_h); has_low[j_h] = True; out.append((to_case(C[j_h]), "low")); spent += c_low
-                dlt.pick(j_h); has_high[j_h] = True; out.append((to_case(C[j_h]), "high")); spent += c_high
+                pick_high(j_h)
             else:
-                low.pick(j_l); has_low[j_l] = True; out.append((to_case(C[j_l]), "low")); spent += c_low
+                pick_low(j_l)
+        # the floor: top up with the fine runs IVR ranks highest until they are at least min_high_share of the round
+        while dlt is not None and spent_high < self.min_high_share * spent and not has_high.all():
+            pick_high(int(np.argmax(scores()[1])))
         return out
 
 

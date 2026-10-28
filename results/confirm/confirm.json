@@ -1,4 +1,6 @@
 {
+ "a": "low_only",
+ "b": "mf_lhs",
  "seeds": [
   9,
   10,

@@ -66,3 +66,13 @@ def test_ivr_buys_both_fidelities_and_avoids_edges():
     mv = [c for c, _ in MaxVariance(pool=256).propose(evals, type("M", (), {"predict": sf.predict})(),
                                                       len(ivr_low), 0, 0)]
     assert edge(ivr_low) < edge(mv), (edge(ivr_low), edge(mv))
+
+
+def test_ivr_floor_on_fine_runs_holds():
+    rng = np.random.default_rng(3)
+    evals = _evals(rng)
+    mf = MultiFidelityGP(iters=60, restarts=1, rho=1.0, delta="gp").fit(evals)
+    picks = MultiFidelityIVR(pool=256, n_ref=64, round_s=200, min_high_share=0.4).propose(evals, mf, 0, 0, 0)
+    high = 30.0 * sum(f == "high" for _, f in picks)
+    total = high + 2.0 * sum(f == "low" for _, f in picks)
+    assert high >= 0.4 * total, (high, total)

@@ -11,7 +11,7 @@ test: {n_runs: 100, seed: 777}    # held out: never looked at while mf_lhs was d
 fidelities:
   low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)
   high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16
-cache_dir: D:/Projects/active-multifidelity-surrogates/cache   # shared with the main checkout
+cache_dir: cache
 workers: 4
 gp: {iters: 200, restarts: 2}     # identical in every config, so only the sampling differs
 mf_model: {rho: 1.0, delta: auto}   # linear or GP correction, chosen each round by 5-fold CV over the fine runs
