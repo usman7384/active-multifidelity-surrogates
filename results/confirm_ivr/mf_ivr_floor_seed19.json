@@ -1,0 +1,136 @@
+{
+ "name": "mf_ivr_floor",
+ "strategy": "mf_ivr",
+ "model": "multi_fidelity",
+ "seed": 19,
+ "cost_basis": "cpu_s",
+ "config": {
+  "name": "mf_ivr_floor",
+  "strategy": "mf_ivr",
+  "strategy_args": {
+   "pool": 1024,
+   "n_ref": 300,
+   "round_s": 600,
+   "min_high_share": 0.4
+  },
+  "seed": 19,
+  "budget_s": 3600,
+  "init": {
+   "n_low": 60,
+   "n_high": 10
+  },
+  "batch": 200,
+  "max_rounds": 40,
+  "test": {
+   "n_runs": 100,
+   "seed": 777
+  },
+  "fidelities": {
+   "low": {
+    "nz": 4,
+    "dh_frac": 0.04
+   },
+   "high": {
+    "nz": 12
+   }
+  },
+  "cache_dir": "cache",
+  "workers": 4,
+  "gp": {
+   "iters": 200,
+   "restarts": 2
+  },
+  "mf_model": {
+   "rho": 1.0,
+   "delta": "auto"
+  }
+ },
+ "test": {
+  "n_runs": 100,
+  "n_rows": 274,
+  "cost_s": 2734.2650000000003
+ },
+ "history": [
+  {
+   "round": 0,
+   "cost_s": 398.65500000000003,
+   "n_runs": {
+    "low": 60,
+    "high": 10
+   },
+   "n_stopped_early": 4,
+   "rmse": 0.8819370663266326,
+   "coverage95": 0.8722627737226277,
+   "crps": 0.43394133245343214,
+   "mean_sd": 0.6106510823780449,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.254169226123721,
+    "gp": 0.26354779214323876
+   }
+  },
+  {
+   "round": 1,
+   "cost_s": 1515.6530000000016,
+   "n_runs": {
+    "low": 346,
+    "high": 27
+   },
+   "n_stopped_early": 21,
+   "rmse": 0.26007552337400813,
+   "coverage95": 0.9306569343065694,
+   "crps": 0.11586699698052551,
+   "mean_sd": 0.19208247384357785,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.2137316730063057,
+    "gp": 0.17839252977985284
+   }
+  },
+  {
+   "round": 2,
+   "cost_s": 2548.286,
+   "n_runs": {
+    "low": 566,
+    "high": 41
+   },
+   "n_stopped_early": 35,
+   "rmse": 0.29667544208452484,
+   "coverage95": 0.8905109489051095,
+   "crps": 0.11159983023490247,
+   "mean_sd": 0.13018655384838146,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "linear",
+   "delta_cv": {
+    "linear": 0.37919394864982986,
+    "gp": 0.4717947133096368
+   }
+  },
+  {
+   "round": 3,
+   "cost_s": 3823.098,
+   "n_runs": {
+    "low": 824,
+    "high": 57
+   },
+   "n_stopped_early": 55,
+   "rmse": 0.30255620465514693,
+   "coverage95": 0.9343065693430657,
+   "crps": 0.09919961588772394,
+   "mean_sd": 0.1314212567878692,
+   "n_rows": 274,
+   "rho": 1.0,
+   "delta": "gp",
+   "delta_cv": {
+    "linear": 0.32811954544907557,
+    "gp": 0.3078678085384267
+   }
+  }
+ ],
+ "created": "2026-10-29T00:49:50"
+}
