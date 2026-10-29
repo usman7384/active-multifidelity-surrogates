@@ -6,3 +6,4 @@ cache/
 results/*.json
 results/*.png
 !results/.gitkeep
+media/explainer/
