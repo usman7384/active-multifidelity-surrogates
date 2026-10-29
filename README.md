@@ -11,7 +11,7 @@ hour) on a held-out fine-mesh test set, over many random seeds.
 ## Result
 
 One page: [media/result_overview.png](media/result_overview.png). Narrated explainers: 44 seconds
-([media/explainer_short.mp4](media/explainer_short.mp4), [GIF](media/explainer_short.gif)) and 2 minutes
+([media/explainer_short.mp4](media/explainer_short.mp4), [GIF](media/explainer_short.gif)) and 2½ minutes
 ([media/explainer.mp4](media/explainer.mp4)); source in [media/explainer](media/explainer).
 
 ![44-second explainer](media/explainer_short.gif)
