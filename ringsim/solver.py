@@ -1,19 +1,5 @@
-# Copied unchanged from forming-surrogates (github.com/usman7384/forming-surrogates, commit 3a0bc31), ringsim/solver.py.
-"""Starter solver for the ring compression test.
-
-Physics (isothermal, rigid-viscoplastic, incompressible):
-  * Norton-Hoff / power-law flow stress   sigma_bar = K * eps_dot_eq**m   (optional hardening (eps0 + eps)**n)
-  * Levy-Mises flow rule                   s = (2/3) * sigma_bar / eps_dot_eq * eps_dot
-  * Regularised Tresca friction on the die tau = -mf * sigma_bar/sqrt(3) * v_r / sqrt(v_r**2 + delta**2)
-  * Velocity-pressure mixed formulation, Taylor-Hood P2/P1 triangles, axisymmetric (r, z)
-  * Half model: mid-plane z = 0 is a symmetry plane (v_z = 0), the top die moves down at speed V
-  * Updated Lagrangian time stepping, Newton iterations with the consistent tangent of the power law; the friction tangent holds the flow stress fixed
-    (its velocity dependence is left out), which slows convergence slightly but does not change the converged solution
-  * Die force from the power balance: F * V = 2*pi * (int 2*eta*eps:eps r dA + int c*v_r**2 r ds)
-
-Everything is written in plain numpy/scipy + scikit-fem so it installs with pip on any OS.
-Lengths are dimensionless: the initial inner radius is 1.
-"""
+# Copied from forming-surrogates (commit 3a0bc31).
+"""Ring compression solver: rigid-viscoplastic, axisymmetric, Taylor-Hood P2/P1 (scikit-fem)."""
 from __future__ import annotations
 
 import json

@@ -1,31 +1,19 @@
-# Copied unchanged from forming-surrogates (github.com/usman7384/forming-surrogates, commit 3a0bc31), surrogates/gp_bo/gp.py.
-"""Exact Gaussian process (Matern 5/2, ARD): trained with GPyTorch, served with plain numpy.
-
-Why two halves: GPyTorch is convenient for maximising the marginal likelihood, but the plant's edge
-service should not need torch to answer a request. After training, a GP posterior is fully described by
-(training inputs, training targets, kernel hyper-parameters), so `NumpyGP` rebuilds the Cholesky factor
-from those few numbers and predicts with numpy only. A test checks it matches GPyTorch.
-
-Inputs are scaled to [0, 1] with the *fixed* box below (the campaign's training box plus the reduction
-range), so ARD length scales of different inputs are comparable: length scale 0.3 means "the target
-changes appreciably over 30% of the input's training range".
-"""
+# Copied from forming-surrogates (commit 3a0bc31).
+"""Exact Matern-5/2 ARD GP: fitted with GPyTorch, served with numpy."""
 from __future__ import annotations
 
-import json
 import math
 from dataclasses import dataclass
-from pathlib import Path
 
 import numpy as np
 from scipy.linalg import solve_triangular
 
-# fixed input box, FEATURES order: od_id, h_id, mf, m, reduction  (campaign training box; reduction 10-30%)
+# input box: od_id, h_id, mf, m, reduction
 LO = np.array([1.6, 0.4, 0.0, 0.05, 0.10])
 HI = np.array([2.4, 1.0, 1.0, 0.30, 0.30])
 FEATURES = ["od_id", "h_id", "mf", "m", "reduction"]
 SQRT5 = math.sqrt(5.0)
-DEFAULT_THREADS = 4          # pinned: the fit is deterministic for a given thread count, platform and package versions
+DEFAULT_THREADS = 4   # the fit is deterministic for a fixed thread count
 
 
 def to_unit(X: np.ndarray, lo: np.ndarray = LO, hi: np.ndarray = HI) -> np.ndarray:
@@ -66,33 +54,15 @@ class NumpyGP:
         Xu = to_unit(np.atleast_2d(X), self.lo, self.hi)
         Ks = matern52(Xu, self.Xu, self.ls, self.outputscale)
         mu = Ks @ self._alpha + self.mean
-        v = solve_triangular(self._L, Ks.T, lower=True)   # O(n^2) per query, not a full solve
+        v = solve_triangular(self._L, Ks.T, lower=True)
         var = self.outputscale - (v ** 2).sum(0) + (self.noise if include_noise else 0.0)
         return mu * self.ysd + self.ymu, np.sqrt(np.maximum(var, 1e-12)) * self.ysd
-
-    # ---- persistence: only the numbers needed to rebuild the posterior
-    def save(self, path: str | Path) -> None:
-        np.savez_compressed(path, Xu=self.Xu, y=self.y, ls=self.ls, lo=self.lo, hi=self.hi,
-                            scalars=np.array([self.outputscale, self.noise, self.mean]),
-                            names=np.array(self.names))
-
-    @classmethod
-    def load(cls, path: str | Path) -> "NumpyGP":
-        z = np.load(path)
-        s = z["scalars"]
-        return cls(Xu=z["Xu"], y=z["y"], ls=z["ls"], outputscale=float(s[0]), noise=float(s[1]),
-                   mean=float(s[2]), lo=z["lo"], hi=z["hi"], names=tuple(str(n) for n in z["names"]))
 
 
 def fit_gp(X: np.ndarray, y: np.ndarray, *, lo: np.ndarray = LO, hi: np.ndarray = HI,
            names=tuple(FEATURES), seed: int = 0, n_restarts: int = 3, iters: int = 300,
-           max_ls: float = 1e3, verbose: bool = False, threads: int = DEFAULT_THREADS) -> tuple[NumpyGP, dict]:
-    """Fit an exact Matern-5/2 ARD GP by maximising the marginal likelihood (Adam, best of restarts).
-
-    Returns (NumpyGP, info) where info has the learned hyper-parameters and the final log-likelihood.
-    The noise is bounded below at 1e-6 (standardised units): the simulator is deterministic, so the only
-    "noise" is discretisation roughness; a floor keeps the Cholesky stable.
-    """
+           max_ls: float = 1e3, threads: int = DEFAULT_THREADS) -> tuple[NumpyGP, dict]:
+    """Maximise the marginal likelihood with Adam, best of n_restarts; returns (NumpyGP, info)."""
     import gpytorch
     import torch
     from gpytorch.constraints import GreaterThan, Interval
@@ -124,7 +94,8 @@ def fit_gp(X: np.ndarray, y: np.ndarray, *, lo: np.ndarray = LO, hi: np.ndarray 
         model.covar_module.base_kernel.lengthscale = torch.full((1, d), ls0, dtype=torch.float64)
         model.covar_module.outputscale = 1.0
         lik.noise = 1e-3
-        model.train(); lik.train()
+        model.train()
+        lik.train()
         opt = torch.optim.Adam(model.parameters(), lr=0.08)
         mll = gpytorch.mlls.ExactMarginalLogLikelihood(lik, model)
         for i in range(iters):
@@ -134,8 +105,6 @@ def fit_gp(X: np.ndarray, y: np.ndarray, *, lo: np.ndarray = LO, hi: np.ndarray 
             opt.step()
         with torch.no_grad():
             final = float(-mll(model(Xu), yt))
-        if verbose:
-            print(f"  restart {r}: -mll/n = {final:.4f}")
         if best is None or final < best[0]:
             best = (final, model, lik)
     final, model, lik = best
@@ -145,25 +114,5 @@ def fit_gp(X: np.ndarray, y: np.ndarray, *, lo: np.ndarray = LO, hi: np.ndarray 
                  noise=float(lik.noise.item()), mean=float(model.mean_module.constant.item()),
                  lo=lo, hi=hi, names=tuple(names))
     info = dict(neg_mll_per_point=final, lengthscales=dict(zip(names, map(float, ls))),
-                outputscale=gp.outputscale, noise=gp.noise, n_train=int(len(y)), seed=seed,
-                env=environment(threads),
-                _torch=(model, lik, Xu, yt, ymu, ysd))
+                outputscale=gp.outputscale, noise=gp.noise, n_train=int(len(y)), seed=seed)
     return gp, info
-
-
-def environment(threads: int) -> dict:
-    """Versions and thread count that make a fit reproducible (recorded in artifacts/gp/meta.json)."""
-    import gpytorch
-    import scipy
-    import torch
-    return dict(torch=torch.__version__, gpytorch=gpytorch.__version__, numpy=np.__version__,
-                scipy=scipy.__version__, torch_threads=int(threads))
-
-
-def public_info(info: dict) -> dict:
-    return {k: v for k, v in info.items() if not k.startswith("_")}
-
-
-def dump_json(path: str | Path, obj) -> None:
-    with open(path, "w") as fh:
-        json.dump(obj, fh, indent=2, default=float)

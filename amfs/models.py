@@ -1,8 +1,4 @@
-"""Surrogates fitted on whatever the oracle has returned so far.
-
-SingleFidelityGP: the forming-surrogates GP (amfs/gp.py), fitted on one fidelity's rows (high by default).
-MultiFidelityGP:  autoregressive two-level GP, f_high = rho * f_low + delta.
-"""
+"""Surrogates: a single-fidelity GP and an autoregressive multi-fidelity GP, f_high = rho * f_low + delta."""
 from __future__ import annotations
 
 import numpy as np
@@ -10,18 +6,14 @@ import numpy as np
 from .design_space import CASE_HI, CASE_LO, READ_AT, case_array, rows_for
 from .gp import NumpyGP, fit_gp as _fit_gp, to_unit
 
-MAX_FIT_ROWS = 1000      # hyper-parameters are learned on at most this many rows; the posterior uses all rows
+MAX_FIT_ROWS = 1000   # hyper-parameters are fitted on at most this many rows; the posterior uses all
+
+LO5 = np.r_[CASE_LO, min(READ_AT)]
+HI5 = np.r_[CASE_HI, max(READ_AT)]
 
 
 def fit_gp(X, y, *, lo, hi, seed: int = 0, **kw):
-    """amfs/gp.py's fit, made affordable for thousands of rows, applied the same way to every strategy.
-
-    Up to MAX_FIT_ROWS rows: the plain exact fit. Above: the hyper-parameters (length scales, signal and noise
-    variance, mean) are fitted on a random MAX_FIT_ROWS-row subsample, then the exact posterior is conditioned
-    on every row with them. Hyper-parameters settle long before the data stop helping the posterior, and the
-    fit's cost grows with the cube of its row count, so this keeps a refit to about a minute at any size.
-    Exact Cholesky throughout (GPyTorch's default switches to approximate conjugate gradients above 800 rows).
-    """
+    """Exact GP fit; above MAX_FIT_ROWS the hyper-parameters come from a random subsample."""
     import gpytorch
     X, y = np.asarray(X, float), np.asarray(y, float)
     sub = np.arange(len(y))
@@ -32,22 +24,19 @@ def fit_gp(X, y, *, lo, hi, seed: int = 0, **kw):
     if len(sub) == len(y):
         return gp, info
     noise = gp.noise
-    for _ in range(6):                    # all rows: add jitter only if near-duplicate rows break the Cholesky
+    for _ in range(6):   # more jitter only if near-duplicate rows break the Cholesky
         try:
-            full = NumpyGP(Xu=to_unit(X, lo, hi), y=y, ls=gp.ls, outputscale=gp.outputscale, noise=noise,
-                           mean=gp.mean, lo=lo, hi=hi, names=gp.names)
+            full = NumpyGP(Xu=to_unit(X, lo, hi), y=y, ls=gp.ls, outputscale=gp.outputscale,
+                           noise=noise, mean=gp.mean, lo=lo, hi=hi, names=gp.names)
             break
         except np.linalg.LinAlgError:
             noise *= 10
     info = dict(info, n_train=int(len(y)), n_hyper_fit=int(len(sub)), noise_used=float(noise))
     return full, info
 
-LO5 = np.r_[CASE_LO, min(READ_AT)]
-HI5 = np.r_[CASE_HI, max(READ_AT)]
-
 
 def table(evals, fidelity: str | None = None) -> tuple[np.ndarray, np.ndarray]:
-    """(X, y) training rows from evaluations, optionally one fidelity only; NaN rows (stopped runs) dropped."""
+    """(X, y) training rows from evaluations, one fidelity if given; NaN rows dropped."""
     ev = [e for e in evals if fidelity is None or e.fidelity == fidelity]
     if not ev:
         return np.empty((0, 5)), np.empty(0)
@@ -61,7 +50,10 @@ class SingleFidelityGP:
     name = "gp_single_fidelity"
 
     def __init__(self, fidelity: str = "high", seed: int = 0, iters: int = 300, restarts: int = 3):
-        self.fidelity, self.seed, self.iters, self.restarts = fidelity, seed, iters, restarts
+        self.fidelity = fidelity
+        self.seed = seed
+        self.iters = iters
+        self.restarts = restarts
         self.gp = None
 
     def fit(self, evals) -> "SingleFidelityGP":
@@ -75,36 +67,26 @@ class SingleFidelityGP:
 
 
 class MultiFidelityGP:
-    """Autoregressive two-level GP (Kennedy and O'Hagan, 2000):
+    """A GP on the cheap rows plus a correction delta fitted to the fine rows' residuals.
 
-        f_high(x) = rho * f_low(x) + delta(x)
-
-    1. A GP on every low-fidelity row (cheap, many) gives mu_low, sd_low.
-    2. rho by least squares of y_high on mu_low at the high-fidelity rows (with an intercept, which delta's
-       constant mean then absorbs).
-    3. A second GP, delta, on the residuals y_high - rho * mu_low(x) at the high rows (few, smooth: the fidelity
-       study shows the coarse error is a slowly varying bias that grows with friction).
-
-    Prediction: mean rho * mu_low + mu_delta, variance rho^2 * sd_low^2 + sd_delta^2. The low GP's uncertainty
-    at the high rows is ignored when fitting delta, which is reasonable once the low data are dense there; the
-    strategy keeps the design nested (every high run also gets a low run) so they are.
-    With fewer than MIN_HIGH_ROWS high rows, rho = 1 and delta is skipped (the prediction is the low GP).
-
-    Options: `rho` = "fit" (least squares, as above) or a fixed number; `delta` = "gp" (a GP on the input
-    columns `delta_dims`, od_id h_id mf m reduction = 0..4), "linear" (LinearDelta: a robust straight line in
-    friction and reduction, enough while fine runs are few) or "auto", which picks between the two at every fit
-    by K-fold cross-validation over the fine RUNS (all rows of a run in the same fold). Cross-validation assumes
-    the fine runs are a random sample of the space.
+    rho is "fit" (least squares) or a number. delta is "gp", "linear" (LinearDelta) or "auto",
+    which picks between the two by cross-validation over the fine runs at every fit.
     """
     name = "mfgp_autoregressive"
     MIN_HIGH_ROWS = 4
-    CV_FOLDS, CV_MIN_RUNS = 5, 10          # "auto": cross-validate only once there are CV_MIN_RUNS fine runs
+    CV_FOLDS = 5
+    CV_MIN_RUNS = 10
 
     def __init__(self, seed: int = 0, iters: int = 300, restarts: int = 3, rho="fit", delta: str = "gp",
                  delta_dims=(0, 1, 2, 3, 4)):
-        self.seed, self.iters, self.restarts = seed, iters, restarts
-        self.rho_mode, self.delta_kind, self.dims = rho, delta, list(delta_dims)
-        self.low = self.delta = None
+        self.seed = seed
+        self.iters = iters
+        self.restarts = restarts
+        self.rho_mode = rho
+        self.delta_kind = delta
+        self.dims = list(delta_dims)
+        self.low = None
+        self.delta = None
         self.rho = 1.0
 
     def fit(self, evals) -> "MultiFidelityGP":
@@ -135,10 +117,11 @@ class MultiFidelityGP:
         if kind == "linear":
             return LinearDelta().fit(X, r)
         d = self.dims
-        return _Columns(d, *fit_gp(X[:, d], r, **dict(kw, lo=LO5[d], hi=HI5[d], names=tuple(map(str, d)))))
+        gp, info = fit_gp(X[:, d], r, **dict(kw, lo=LO5[d], hi=HI5[d], names=tuple(map(str, d))))
+        return _Columns(d, gp, info)
 
     def _choose(self, Xh, r, kw) -> str:
-        """K-fold cross-validated RMSE of each delta over the fine runs; the lower one wins (ties: linear)."""
+        """Cross-validated RMSE of each delta kind over the fine runs; the lower wins, ties to linear."""
         _, run = np.unique(np.round(Xh[:, :4], 9), axis=0, return_inverse=True)
         run = run.ravel()
         n_runs = run.max() + 1
@@ -150,18 +133,18 @@ class MultiFidelityGP:
         for k in range(self.CV_FOLDS):
             te = fold[run] == k
             for kind in err:
-                pred = self._fit_delta(kind, Xh[~te], r[~te], dict(kw, n_restarts=1)).predict(Xh[te])[0]
-                err[kind].append(pred - r[te])
+                delta = self._fit_delta(kind, Xh[~te], r[~te], dict(kw, n_restarts=1))
+                err[kind].append(delta.predict(Xh[te])[0] - r[te])
         cv = {k: float(np.sqrt(np.mean(np.concatenate(v) ** 2))) for k, v in err.items()}
         self.info["delta_cv"] = cv
         return "gp" if cv["gp"] < cv["linear"] else "linear"
 
     def components(self, X: np.ndarray) -> tuple[float, np.ndarray, np.ndarray]:
-        """(rho, sd_low, sd_delta) at X: the two parts of the predictive uncertainty, for the strategy.
-        Latent only (no noise term): a new run cannot remove the noise floor, so it must not count as reducible."""
+        """(rho, sd_low, sd_delta) at X, without noise: a run cannot remove the noise floor."""
         _, sd_l = self.low.predict(X, include_noise=False)
-        sd_d = self.delta.predict(X, include_noise=False)[1] if self.delta is not None else np.zeros(len(X))
-        return self.rho, sd_l, sd_d
+        if self.delta is None:
+            return self.rho, sd_l, np.zeros(len(X))
+        return self.rho, sd_l, self.delta.predict(X, include_noise=False)[1]
 
     def predict(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         mu_l, sd_l = self.low.predict(X)
@@ -173,40 +156,38 @@ class MultiFidelityGP:
 
 class _Columns:
     """A GP fitted on some input columns, called with all five."""
+
     def __init__(self, dims, gp, info):
-        self.dims, self.gp, self.info = dims, gp, info
+        self.dims = dims
+        self.gp = gp
+        self.info = info
 
     def predict(self, X, include_noise: bool = True):
         return self.gp.predict(X[:, self.dims], include_noise=include_noise)
 
 
 class LinearDelta:
-    """delta(x) = w0 + w1 mf + w2 r + w3 mf r (unit-box friction mf and reduction r), by least squares.
-    The fidelity study's coarse bias is a smooth function of friction and reduction, so four numbers capture it;
-    the uncertainty is the residual sd (constant)."""
+    """delta = w0 + w1 mf + w2 r + w3 mf r in the unit box, by Huber-weighted least squares."""
     MF, RED = 2, 4
 
     def _A(self, X):
         u = (X - LO5) / (HI5 - LO5)
-        return np.column_stack([np.ones(len(X)), u[:, self.MF], u[:, self.RED], u[:, self.MF] * u[:, self.RED]])
-
-    def __init__(self, robust: bool = True):
-        self.robust = robust
+        mf, red = u[:, self.MF], u[:, self.RED]
+        return np.column_stack([np.ones(len(X)), mf, red, mf * red])
 
     def fit(self, X, r):
         A = self._A(X)
         wts = np.ones(len(r))
-        for _ in range(30 if self.robust else 1):         # Huber IRLS (c = 1.345 robust sd); 1 pass = least squares
+        for _ in range(30):
             sw = np.sqrt(wts)
             self.w = np.linalg.lstsq(A * sw[:, None], r * sw, rcond=None)[0]
             e = r - A @ self.w
             scale = 1.4826 * np.median(np.abs(e - np.median(e))) + 1e-9
             wts = np.minimum(1.0, 1.345 * scale / np.maximum(np.abs(e), 1e-12))
         e = r - A @ self.w
-        self.P = np.linalg.pinv((A * wts[:, None]).T @ A)    # weight covariance / s^2, for IVR (amfs/ivr.py)
+        self.P = np.linalg.pinv((A * wts[:, None]).T @ A)   # weight covariance over s^2, for IVR
         dof = np.sqrt(len(r) / max(1, len(r) - A.shape[1]))
-        # robust: the spread of the typical residual, so a fold-over outlier does not widen every interval
-        spread = 1.4826 * np.median(np.abs(e - np.median(e))) if self.robust else np.std(e)
+        spread = 1.4826 * np.median(np.abs(e - np.median(e)))   # robust to fold-over outliers
         self.s = float(spread * dof)
         return self
 

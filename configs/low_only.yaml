@@ -1,17 +1,16 @@
-# "Just use cheap runs": Latin-hypercube cases, all coarse. Scored on the same fine-mesh test set, so the
-# coarse bias counts against it. The competitor the fidelity study says multi-fidelity must beat.
+# Latin-hypercube runs, cheap mesh only.
 name: low_only
 strategy: random_lhs
 strategy_args: {fidelity: low}
 seed: 0
-budget_s: 3600
-max_rounds: 40            # safety only: the budget ends the run (GP hyper-parameters fit on <= 1,000 rows, so refits stay ~1 min)
+budget_s: 3600   # solver CPU seconds for training runs
+max_rounds: 40   # safety cap; the budget ends the run
 init: {n_runs: 100}
-batch: 200                # cheap runs per round, about 400 CPU s: about 9 rounds to the budget
-test: {n_runs: 100, seed: 777}    # held-out fine-mesh test set, its own seed
+batch: 200   # cheap runs per round
+test: {n_runs: 100, seed: 777}   # held-out fine-mesh test set
 fidelities:
   low: {nz: 4, dh_frac: 0.04}
   high: {nz: 12}
 cache_dir: cache
 workers: 4
-gp: {iters: 200, restarts: 2}
+gp: {iters: 200, restarts: 2}   # same in every config

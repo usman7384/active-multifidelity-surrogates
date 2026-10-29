@@ -1,15 +1,15 @@
-# Active learning: next runs where the GP is most unsure (all high fidelity).
+# Fine runs where the GP is most unsure.
 name: max_variance
 strategy: max_variance
 strategy_args: {pool: 2048, min_dist: 0.15}
 seed: 0
-budget_s: 3600            # solver CPU seconds for training runs (about 130 nz12 runs)
+budget_s: 3600   # solver CPU seconds for training runs
 init: {n_runs: 20}
 batch: 10
-test: {n_runs: 100, seed: 777}    # held-out fine-mesh test set, its own seed
+test: {n_runs: 100, seed: 777}   # held-out fine-mesh test set
 fidelities:
-  low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)
-  high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16
+  low: {nz: 4, dh_frac: 0.04}
+  high: {nz: 12}
 cache_dir: cache
 workers: 4
-gp: {iters: 200, restarts: 2}     # identical in every config, so only the sampling differs
+gp: {iters: 200, restarts: 2}   # same in every config

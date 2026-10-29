@@ -1,14 +1,11 @@
-"""Run one experiment from a config file.
-
-    python scripts/run.py configs/random_lhs.yaml [--seed 1] [--out results]
-"""
+"""Run one experiment: python scripts/run.py configs/mf_lhs.yaml --seed 1 --out results"""
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))   # so worker processes import ringsim/amfs too
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from amfs.loop import load_config, run_experiment  # noqa: E402
 

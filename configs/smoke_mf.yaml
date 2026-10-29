@@ -3,11 +3,11 @@ name: smoke_mf
 strategy: mf_ivr
 strategy_args: {pool: 64, n_ref: 32, round_s: 40}
 seed: 0
-budget_s: 120
-max_rounds: 2
+budget_s: 120   # solver CPU seconds for training runs
+max_rounds: 2   # safety cap; the budget ends the run
 init: {n_low: 6, n_high: 3}
 batch: 4
-test: {n_runs: 3, seed: 12345}
+test: {n_runs: 3, seed: 12345}   # held-out fine-mesh test set
 fidelities:
   low: {nz: 3, dh_frac: 0.04}
   high: {nz: 4, dh_frac: 0.04}

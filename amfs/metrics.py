@@ -1,9 +1,15 @@
-"""Scores at each checkpoint, on a fixed high-fidelity test set."""
+"""Scores on the fixed high-fidelity test set."""
 from __future__ import annotations
 
-import numpy as np
+import math
 
-from .calibration import crps_gaussian
+import numpy as np
+from scipy.stats import norm
+
+
+def crps_gaussian(y, mu, sd) -> np.ndarray:
+    z = (np.asarray(y) - mu) / sd
+    return sd * (z * (2 * norm.cdf(z) - 1) + 2 * norm.pdf(z) - 1 / math.sqrt(math.pi))
 
 
 def score(y: np.ndarray, mu: np.ndarray, sd: np.ndarray) -> dict:
