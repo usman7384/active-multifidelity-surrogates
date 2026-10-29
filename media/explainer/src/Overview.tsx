@@ -111,10 +111,6 @@ export const Overview: React.FC = () => (
             {IVR_FLOOR.verdict ?? "IVR with a fine-run floor: pre-registered run in progress"}
           </div>
           {IVR_FLOOR.detail ? <div style={{ fontSize: 20, color: C.ink2, marginTop: 10, lineHeight: 1.35 }}>{IVR_FLOOR.detail}</div> : null}
-          <div style={{ fontSize: 20, color: C.ink2, marginTop: 10, lineHeight: 1.35 }}>
-            Without the floor (seeds 1-8) IVR tied the Latin hypercube on average and beat cheap runs in 7 of 8, but its
-            result swung with how many fine runs it bought.
-          </div>
         </div>
       </div>
     </div>

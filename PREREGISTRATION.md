@@ -28,7 +28,8 @@ round at or below 1.0 h). One-sided Wilcoxon signed-rank test on the 12 values o
 **Secondary (reported, not used for the claim).** Sign test; mean and median relative RMSE gain; the same
 comparison at 0.75 h; 95% coverage of both and whether `mf_lhs` is closer to 0.95 per seed.
 
-**Result.** [results/confirm/confirm.md](results/confirm/confirm.md).
+**Result.** Supported: p = 0.0005, `mf_lhs` lower RMSE in 11 of 12 seeds, mean gain 29.5%
+([results/confirm/confirm.md](results/confirm/confirm.md)).
 
 ---
 
@@ -65,4 +66,5 @@ is more accurate than the fixed design on this problem and becomes the recommend
 comparison at 0.75 h; coverage of both and whether `mf_ivr_floor` is closer to 0.95 per seed; the number of
 fine runs bought per seed; the comparison against `low_only` on the same seeds.
 
-**Result.** [results/confirm_ivr/confirm.md](results/confirm_ivr/confirm.md).
+**Result.** Not supported: p = 0.99, `mf_ivr_floor` lower RMSE in 2 of 12 seeds, mean RMSE 0.229 against 0.178
+([results/confirm_ivr/confirm.md](results/confirm_ivr/confirm.md)).

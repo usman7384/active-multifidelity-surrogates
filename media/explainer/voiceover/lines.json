@@ -10,13 +10,13 @@
     "picking": "How were the runs placed? Mostly by a Latin hypercube: spread evenly, decided in advance. We also tried letting the model choose, with integrated variance reduction.",
     "results": "On a hundred unseen tests, the mix had the lowest error. And when it said ninety-five percent sure, it was right ninety-one percent of the time. Cheap runs alone were right only sixty-eight percent of the time.",
     "confirm": "Then we wrote the test down in advance and ran twelve fresh trials. The mix won eleven of them, with thirty percent lower error on average.",
-    "ivr": "PLACEHOLDER: filled after the pre-registered IVR run.",
+    "ivr": "Letting the model choose did not help. Even with a guaranteed share of accurate runs, it lost to the even spread in ten of twelve pre-registered trials. The simple design is still the one to use.",
     "takeaway": "Same hour of compute. About thirty percent less error. And honest about what it doesn't know."
   },
   "short": {
     "s1": "Accurate simulations are slow. Cheap ones are fast but slightly off. You have one hour of compute.",
     "s2": "Accurate only: too few points. Cheap only: confidently wrong. Mixed: cheap runs draw the shape, a few accurate runs fix the offset.",
     "s3": "Same compute, thirty percent less error, and honest about its uncertainty. Confirmed on twelve pre-registered trials.",
-    "s4": "PLACEHOLDER: one line on how runs were chosen, filled after the IVR run."
+    "s4": "And letting the model choose its own runs did not beat the even spread. Here, simple wins."
   }
 }

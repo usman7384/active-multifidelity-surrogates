@@ -9,7 +9,7 @@ export const RemotionRoot: React.FC = () => {
     <>
       <Composition id="Explainer" component={Explainer} durationInFrames={totalFrames(FPS)} fps={FPS} width={1920} height={1080} />
       <Composition id="Short" component={Short} durationInFrames={shortTotal(SHORT_FPS)} fps={SHORT_FPS} width={1920} height={1080} />
-      <Still id="Overview" component={Overview} width={1920} height={1540} />
+      <Still id="Overview" component={Overview} width={1920} height={1580} />
     </>
   );
 };

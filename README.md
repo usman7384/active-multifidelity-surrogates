@@ -10,8 +10,11 @@ hour) on a held-out fine-mesh test set, over many random seeds.
 
 ## Result
 
-One page: [media/result_overview.png](media/result_overview.png). Animated explainer:
-[media/explainer.mp4](media/explainer.mp4) (source in [media/explainer](media/explainer)).
+One page: [media/result_overview.png](media/result_overview.png). Narrated explainers: 34 seconds
+([media/explainer_short.mp4](media/explainer_short.mp4), [GIF](media/explainer_short.gif)) and 100 seconds
+([media/explainer.mp4](media/explainer.mp4)); source in [media/explainer](media/explainer).
+
+![34-second explainer](media/explainer_short.gif)
 
 ![test error and coverage against solver CPU hours, eight seeds per strategy](results/final/cost_curves.png)
 
@@ -82,7 +85,18 @@ pre-registered, and run on the same seeds as the main table ([summary](results/i
 `mf_ivr_floor` is `mf_ivr` with at least 40% of each round's CPU seconds on fine runs, placed in IVR order
 ([PREREGISTRATION.md](PREREGISTRATION.md), part 2; seeds 9-20, one-sided Wilcoxon at 1.0 CPU h).
 
-<!-- PART2_RESULT -->
+| at 1.0 CPU h, seeds 9-20 | `mf_lhs` | `mf_ivr_floor` |
+|---|---|---|
+| Test RMSE, mean | 0.178 | 0.229 |
+| 95% coverage, mean | 0.94 | 0.91 |
+| Fine runs bought, mean (range) | 50 | 70 (54-90) |
+
+**Not supported: p = 0.99.** `mf_ivr_floor` has lower RMSE in only 2 of 12 seeds; its error is 40% higher on
+average ([confirm.md](results/confirm_ivr/confirm.md), [data](results/confirm_ivr/confirm.json)). The floor did
+what it was meant to (every seed bought 54-90 fine runs, against 19-69 without it), and it did not help: buying
+enough fine runs was not the problem, where IVR puts them is. Against `low_only` on the same seeds it is lower
+in 8 of 12 (not significant) and closer to 0.95 coverage in 12 of 12. On this problem a fixed, evenly spread
+design beats the model choosing its own runs; `mf_lhs` stays the recommended default.
 
 ## The strategies
 
@@ -155,6 +169,8 @@ python scripts/sweep.py --configs random_lhs max_variance low_only mf_lhs --seed
 python scripts/summarize.py results/final                # figure, table, paired tests
 python scripts/sweep.py --configs low_only mf_lhs --seeds 9 10 11 12 13 14 15 16 17 18 19 20 \
     --parallel 2 --out results/confirm && python scripts/confirm.py results/confirm
+python scripts/sweep.py --configs mf_ivr_floor --seeds 9 10 11 12 13 14 15 16 17 18 19 20 \
+    --parallel 2 --out results/confirm_ivr && python scripts/confirm.py results/confirm_ivr --a mf_lhs --b mf_ivr_floor
 ```
 
 The sweep is resumable (a finished strategy and seed is skipped), and seeds draw separate Latin hypercubes
@@ -170,8 +186,11 @@ The sweep is resumable (a finished strategy and seed is skipped), and seeds draw
 
 ## Next steps
 
-1. Tune the fine-run share on a validation set, and calibrate the intervals.
-2. A decision-aware acquisition that targets rings near the spec boundary, where go/check/stop verdicts flip.
+1. Why IVR's fine runs teach a worse correction than random ones: compare the fine-minus-cheap residuals of the
+   cases each picks. The likely cause is that the model's most uncertain cases are the hardest ones, so the
+   correction learns an unrepresentative offset.
+2. Tune the fine-run share on a validation set, and calibrate the intervals.
+3. A decision-aware acquisition that targets rings near the spec boundary, where go/check/stop verdicts flip.
 
 ## Provenance and licence
 
