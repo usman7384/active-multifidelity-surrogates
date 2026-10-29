@@ -1,12 +1,12 @@
-# Seconds-scale end-to-end check: coarse mesh as "high", tiny sets, short GP fits.
+# Seconds-scale end-to-end check.
 name: smoke
 strategy: max_variance
 seed: 0
-budget_s: 60
-max_rounds: 2
+budget_s: 60   # solver CPU seconds for training runs
+max_rounds: 2   # safety cap; the budget ends the run
 init: {n_runs: 4}
 batch: 2
-test: {n_runs: 3, seed: 12345}
+test: {n_runs: 3, seed: 12345}   # held-out fine-mesh test set
 fidelities:
   low: {nz: 3, dh_frac: 0.04}
   high: {nz: 4, dh_frac: 0.04}

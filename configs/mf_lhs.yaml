@@ -1,17 +1,17 @@
-# Multi-fidelity, second version: Latin-hypercube cheap runs plus about 30% of each round's solver time on fine runs.
+# Latin-hypercube cheap runs plus about 30% of solver time on fine runs.
 name: mf_lhs
 strategy: mf_lhs
-strategy_args: {high_share: 0.3, high_pick: random}   # share of each round's solver seconds on fine runs
+strategy_args: {high_share: 0.3, high_pick: random}   # share of solver seconds on fine runs
 seed: 0
-budget_s: 3600            # solver CPU seconds for training runs, same as the other strategies
-init: {n_low: 60, n_high: 10}     # nested: the 10 high cases are the first 10 of the 60 low cases (about 410 s)
-batch: 200                # cheap Latin-hypercube runs per round (as low_only); the fine runs are on top
-max_rounds: 40            # safety only: the budget ends the run (GP hyper-parameters fit on <= 1,000 rows, so refits stay ~1 min)
-test: {n_runs: 100, seed: 777}    # held-out fine-mesh test set, its own seed
+budget_s: 3600   # solver CPU seconds for training runs
+init: {n_low: 60, n_high: 10}   # nested: the high cases are the first low cases
+batch: 200   # cheap runs per round
+max_rounds: 40   # safety cap; the budget ends the run
+test: {n_runs: 100, seed: 777}   # held-out fine-mesh test set
 fidelities:
-  low: {nz: 4, dh_frac: 0.04}     # 2.3 s per run (fidelity study)
-  high: {nz: 12}                  # 27 s per run, within 0.013 points of nz16
+  low: {nz: 4, dh_frac: 0.04}
+  high: {nz: 12}
 cache_dir: cache
 workers: 4
-gp: {iters: 200, restarts: 2}     # identical in every config, so only the sampling differs
-mf_model: {rho: 1.0, delta: auto}   # linear or GP correction, chosen each round by 5-fold CV over the fine runs
+gp: {iters: 200, restarts: 2}   # same in every config
+mf_model: {rho: 1.0, delta: auto}   # correction picked each round by cross-validation

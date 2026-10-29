@@ -5,7 +5,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from amfs.design_space import READ_AT, lhs_cases, rows_for  # noqa: E402
+from amfs.design_space import READ_AT, case_array, lhs_cases, rows_for  # noqa: E402
 from amfs.loop import load_config, run_experiment  # noqa: E402
 from amfs.metrics import score  # noqa: E402
 from amfs.oracle import Oracle  # noqa: E402
@@ -14,8 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_design_rows():
-    cases = lhs_cases(5, seed=0)
-    X = rows_for(np.array([[c[k] for k in ("od_id", "h_id", "mf", "m")] for c in cases]))
+    X = rows_for(case_array(lhs_cases(5, seed=0)))
     assert X.shape == (5 * len(READ_AT), 5)
 
 
@@ -31,8 +30,8 @@ def test_oracle_charges_cost_and_caches(tmp_path):
     a = o.query([case], "high")[0]
     b = o.query([case], "high")[0]
     assert not a.cached and b.cached
-    assert a.cost_s > 0 and b.cost_s == a.cost_s          # the cache keeps the original cost
-    assert np.all(np.isfinite(a.y)) and a.y[-1] < a.y[0] < 5   # mf 0.3: hole closes as the press goes deeper
+    assert a.cost_s > 0 and b.cost_s == a.cost_s
+    assert np.all(np.isfinite(a.y)) and a.y[-1] < a.y[0] < 5
 
 
 def test_smoke_experiment(tmp_path):

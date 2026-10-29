@@ -1,11 +1,4 @@
-"""The solver as an expensive oracle: cached, parallel, and it charges every call its real CPU time.
-
-Adapted from forming-surrogates (surrogates/gp_bo/solver_calls.py). A call names a *fidelity* (a mesh
-resolution), and every result carries the CPU time of its original solve, so an experiment's budget is counted
-in solver CPU seconds even when a run is read back from the cache: a re-run spends exactly the same cost.
-CPU time rather than wall time, so other jobs on the machine do not change costs. Cache files are written
-atomically, so parallel experiments can share one cache.
-"""
+"""The solver behind a cache: every run is charged the CPU seconds of its original solve."""
 from __future__ import annotations
 
 import hashlib
@@ -20,16 +13,16 @@ import numpy as np
 
 from .design_space import READ_AT, RUN_TO
 
-# nz = elements through the half height, dh_frac = die travel per step (fraction of the half height)
-DEFAULT_FIDELITIES = {"low": {"nz": 4, "dh_frac": 0.04}, "high": {"nz": 12}}   # chosen by scripts/fidelity_study.py
+# nz: elements through the half height; dh_frac: die travel per step
+DEFAULT_FIDELITIES = {"low": {"nz": 4, "dh_frac": 0.04}, "high": {"nz": 12}}
 
 
 @dataclass
 class Evaluation:
     case: dict
     fidelity: str
-    y: np.ndarray            # inner-diameter change (%) at READ_AT; NaN where the run stopped early
-    cost_s: float            # solver CPU seconds of the original solve
+    y: np.ndarray        # inner-diameter change (%) at READ_AT, NaN where the run stopped early
+    cost_s: float        # solver CPU seconds
     stopped_early: bool
     cached: bool
 
@@ -47,7 +40,8 @@ def _solve(job):
     return dict(case=case, numerics=num,
                 reduction=np.asarray(res.curves["reduction"]).tolist(),
                 id_change_pct=np.asarray(res.curves["id_change_pct"]).tolist(),
-                stopped_early=bool(res.info["stopped_early"]), runtime_s=float(res.info["runtime_s"]),
+                stopped_early=bool(res.info["stopped_early"]),
+                runtime_s=float(res.info["runtime_s"]),
                 cpu_s=round(cpu_s, 3))
 
 
@@ -60,17 +54,17 @@ def _read(r: dict) -> np.ndarray:
 
 
 class Oracle:
-    def __init__(self, cache_dir: str | Path = "cache", fidelities: dict | None = None, workers: int = 4,
-                 log=print):
+    def __init__(self, cache_dir="cache", fidelities=None, workers: int = 4, log=print):
         self.cache = Path(cache_dir)
         self.cache.mkdir(parents=True, exist_ok=True)
         self.fidelities = dict(fidelities or DEFAULT_FIDELITIES)
-        self.workers, self.log = workers, log
+        self.workers = workers
+        self.log = log
 
     def query(self, cases: list[dict], fidelity: str) -> list[Evaluation]:
-        """Solve each case at one fidelity (cached); results in input order."""
+        """Solve each case at one fidelity, reading from the cache where possible."""
         num = dict(self.fidelities[fidelity])
-        raw: list[dict | None] = [None] * len(cases)
+        raw = [None] * len(cases)
         todo = []
         for i, c in enumerate(cases):
             f = self.cache / f"{_key(c, num)}.json"
@@ -81,14 +75,17 @@ class Oracle:
                 todo.append(i)
         if todo:
             w = max(1, min(self.workers, len(todo)))
-            self.log(f"oracle: {len(todo)} {fidelity}-fidelity runs on {w} workers "
-                     f"({len(cases) - len(todo)} cached)")
+            self.log(f"oracle: {len(todo)} {fidelity} runs on {w} workers")
+            jobs = [(cases[i], num) for i in todo]
             with ProcessPoolExecutor(max_workers=w) as ex:
-                for i, r in zip(todo, ex.map(_solve, [(cases[i], num) for i in todo])):
-                    f = self.cache / f"{_key(cases[i], num)}.json"
-                    tmp = f.with_suffix(f".{os.getpid()}.tmp")
-                    tmp.write_text(json.dumps(r))
-                    os.replace(tmp, f)                  # atomic: a parallel reader never sees half a file
+                for i, r in zip(todo, ex.map(_solve, jobs)):
+                    self._write(cases[i], num, r)
                     raw[i] = dict(r, cached=False)
-        return [Evaluation(case=r["case"], fidelity=fidelity, y=_read(r), cost_s=r["cpu_s"],
-                           stopped_early=r["stopped_early"], cached=r["cached"]) for r in raw]
+        return [Evaluation(r["case"], fidelity, _read(r), r["cpu_s"], r["stopped_early"], r["cached"])
+                for r in raw]
+
+    def _write(self, case, num, r):
+        f = self.cache / f"{_key(case, num)}.json"
+        tmp = f.with_suffix(f".{os.getpid()}.tmp")
+        tmp.write_text(json.dumps(r))
+        os.replace(tmp, f)   # atomic, so parallel experiments can share the cache
