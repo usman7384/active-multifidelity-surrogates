@@ -2,9 +2,9 @@
 
 A [Remotion](https://www.remotion.dev) project that renders two things from the study's numbers:
 
-- `Short`: the 34-second narrated cut for LinkedIn and the README (1920 x 1080, 30 fps), rendered to
+- `Short`: the 36-second narrated cut for LinkedIn and the README (1920 x 1080, 30 fps), rendered to
   [`../explainer_short.mp4`](../explainer_short.mp4) and, at half size and 15 fps, [`../explainer_short.gif`](../explainer_short.gif).
-- `Explainer`: the 100-second narrated version, rendered to [`../explainer.mp4`](../explainer.mp4).
+- `Explainer`: the 2-minute narrated version, rendered to [`../explainer.mp4`](../explainer.mp4).
 - `Overview`: the one-page result diagram (1920 x 1540), rendered to [`../result_overview.png`](../result_overview.png).
 
 Narration: `voiceover/lines.json` is the script; `voiceover/make_voiceover.py` synthesises it with

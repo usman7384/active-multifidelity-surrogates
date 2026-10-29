@@ -10,11 +10,11 @@ hour) on a held-out fine-mesh test set, over many random seeds.
 
 ## Result
 
-One page: [media/result_overview.png](media/result_overview.png). Narrated explainers: 34 seconds
-([media/explainer_short.mp4](media/explainer_short.mp4), [GIF](media/explainer_short.gif)) and 100 seconds
+One page: [media/result_overview.png](media/result_overview.png). Narrated explainers: 36 seconds
+([media/explainer_short.mp4](media/explainer_short.mp4), [GIF](media/explainer_short.gif)) and 2 minutes
 ([media/explainer.mp4](media/explainer.mp4)); source in [media/explainer](media/explainer).
 
-![34-second explainer](media/explainer_short.gif)
+![36-second explainer](media/explainer_short.gif)
 
 ![test error and coverage against solver CPU hours, eight seeds per strategy](results/final/cost_curves.png)
 
