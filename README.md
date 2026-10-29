@@ -116,7 +116,7 @@ reads a results folder and compares two strategies seed by seed at one CPU hour.
 ## Repository map
 
 ```
-amfs/           the loop, models, strategies, acquisition, metrics
+amfs/           the loop, models, strategies, acquisition (ivr.py), metrics
 configs/        one YAML per strategy; smoke_*.yaml are the tiny ones the tests use
 scripts/        run.py (one experiment), sweep.py (many), summarize.py, confirm.py, fidelity_study.py
 results/        final (8 seeds, 4 strategies), confirm and confirm_ivr (12 seeds each), ivr_compare, fidelity
@@ -136,4 +136,4 @@ tests/          smoke tests on tiny budgets
 Next: find out why the runs the model picks teach a worse correction than random ones (the likely cause is that
 its most uncertain cases are the hardest ones); tune the accurate-run share; calibrate the intervals.
 
-`ringsim/solver.py`, `amfs/gp.py` and `amfs/calibration.py` are copied unchanged from forming-surrogates. MIT licence.
+`ringsim/solver.py` and `amfs/gp.py` are copied from forming-surrogates. MIT licence.
