@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { CurvePanel, Swatch } from "./components";
-import { CONFIRM, FINAL, IVR_FLOOR } from "./data";
+import { CONFIRM, FINAL } from "./data";
 import { PickCard } from "./scenes/Picking";
 import { C, FONT } from "./theme";
 
@@ -101,17 +101,11 @@ export const Overview: React.FC = () => (
 
     <div style={{ marginTop: 40 }}>
       <div style={{ fontSize: 26, fontWeight: 600 }}>
-        How the runs were chosen <span style={{ color: C.muted, fontWeight: 400 }}>· a fixed design against active learning</span>
+        How the runs were chosen <span style={{ color: C.muted, fontWeight: 400 }}>· a fixed design, and the model choosing for itself</span>
       </div>
       <div style={{ display: "flex", gap: 30, marginTop: 14, alignItems: "stretch" }}>
-        <PickCard kind="lhs" from={-100} width={600} compact />
-        <PickCard kind="ivr" from={-100} width={600} compact />
-        <div style={{ flex: 1, padding: "20px 24px", borderRadius: 14, background: "#fff", boxShadow: `0 1px 0 ${C.border}, 0 8px 24px rgba(11,11,11,0.05)` }}>
-          <div style={{ fontSize: 22, fontWeight: 600, color: IVR_FLOOR.verdict ? C.ink : C.muted, lineHeight: 1.3 }}>
-            {IVR_FLOOR.verdict ?? "IVR with a fine-run floor: pre-registered run in progress"}
-          </div>
-          {IVR_FLOOR.detail ? <div style={{ fontSize: 20, color: C.ink2, marginTop: 10, lineHeight: 1.35 }}>{IVR_FLOOR.detail}</div> : null}
-        </div>
+        <PickCard kind="lhs" from={-100} width={845} compact />
+        <PickCard kind="ivr" from={-100} width={845} compact />
       </div>
     </div>
 

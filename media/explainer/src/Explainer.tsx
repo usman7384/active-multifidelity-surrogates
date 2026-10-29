@@ -5,7 +5,7 @@ import { Budget } from "./scenes/Budget";
 import { Confirm } from "./scenes/Confirm";
 import { Goal } from "./scenes/Goal";
 import { Hook } from "./scenes/Hook";
-import { Picking, pickingVerdictAt } from "./scenes/Picking";
+import { Picking } from "./scenes/Picking";
 import { Results } from "./scenes/Results";
 import { Takeaway } from "./scenes/Takeaway";
 import { ThreeWays, threeWaysStarts } from "./scenes/ThreeWays";
@@ -22,7 +22,7 @@ export const scenes = (fps: number) => ({
   three: threeWaysStarts(fps).end,
   results: clipFrames("long_results", fps, 400),
   confirm: clipFrames("long_confirm", fps, 330),
-  picking: pickingVerdictAt(fps) + clipFrames("long_ivr", fps, 150, 1.0),
+  picking: clipFrames("long_picking", fps, 360, 1.0),
   takeaway: clipFrames("long_takeaway", fps, 230),
 });
 export const totalFrames = (fps: number) => Object.values(scenes(fps)).reduce((a, b) => a + b, 0) - 7 * FADE;

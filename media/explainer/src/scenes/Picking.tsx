@@ -1,10 +1,8 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { ease, enter, pop, rng } from "../anim";
-import { IVR_FLOOR } from "../data";
-import { Headline, Kicker, Narration, Scene, Sub } from "../components";
+import { Headline, Kicker, Narration, Scene } from "../components";
 import { C, FONT, T } from "../theme";
-import { clipFrames } from "../vo";
 
 // Latin hypercube: one point per row and per column, decided before any run.
 const lhsPts = (() => {
@@ -17,7 +15,7 @@ const lhsPts = (() => {
   return cols.map((c, row) => ({ x: (c + 0.3 + 0.4 * r()) / 8, y: (row + 0.3 + 0.4 * r()) / 8 }));
 })();
 
-// IVR: points land where the model is unsure, and some of them are fine runs (rings).
+// Model's choice: points land where the model is unsure, and some of them are fine runs (rings).
 const ivrPts = (() => {
   const r = rng(5);
   const out: { x: number; y: number; fine: boolean }[] = [];
@@ -93,36 +91,27 @@ export const PickCard: React.FC<{ kind: "lhs" | "ivr"; from: number; width?: num
               : "Each round the model picks the runs, and the mesh, that would shrink its uncertainty most per CPU second."}
         </div>
         <div style={{ fontSize: compact ? 20 : T.small, color: C.muted, marginTop: compact ? 6 : 10 }}>
-          {kind === "lhs" ? "used by the winning method" : "active learning"}
+          {kind === "lhs" ? "behind every result shown here" : "active learning, also studied"}
         </div>
       </div>
     </div>
   );
 };
 
-// Scene: how the runs were chosen, and what letting the model choose did.
-export const pickingVerdictAt = (fps: number) => clipFrames("long_picking", fps, 300, 0.3);
-
+// Scene: how the runs were chosen.
 export const Picking: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const at = pickingVerdictAt(fps);
-  const pending = IVR_FLOOR.verdict === null;
   return (
     <Scene>
       <Narration k="long_picking" />
-      <Narration k="long_ivr" from={at} />
       <Kicker from={0}>One more question</Kicker>
-      <Headline from={6} size={76}>How were the runs chosen?</Headline>
+      <Headline from={6} size={76}>Who decides where the runs go?</Headline>
       <div style={{ display: "flex", gap: 40, marginTop: 56 }}>
-        <PickCard kind="lhs" from={40} />
-        <PickCard kind="ivr" from={130} />
+        <PickCard kind="lhs" from={60} />
+        <PickCard kind="ivr" from={200} />
       </div>
-      <div style={{ marginTop: "auto", ...enter(frame, at + 10) }}>
-        <div style={{ fontSize: T.sub, fontWeight: 600, color: pending ? C.muted : C.ink }}>
-          {pending ? "IVR result: pending the pre-registered run" : IVR_FLOOR.verdict}
-        </div>
-        {IVR_FLOOR.detail ? <Sub size={T.body} style={{ marginTop: 10 }}>{IVR_FLOOR.detail}</Sub> : null}
+      <div style={{ marginTop: "auto", fontSize: T.body, color: C.ink2, ...enter(frame, 300) }}>
+        Both are in the repository; the even spread is the design behind the results above.
       </div>
     </Scene>
   );

@@ -4,7 +4,7 @@ import { fade } from "@remotion/transitions/fade";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { ease, enter } from "./anim";
 import { Bar, CurvePanel, Headline, Kicker, MeshCard, Narration, Scene, Stat, Sub } from "./components";
-import { CONFIRM, FINAL, IVR_FLOOR } from "./data";
+import { CONFIRM, FINAL } from "./data";
 import { PickCard } from "./scenes/Picking";
 import { C, T } from "./theme";
 import { clipFrames } from "./vo";
@@ -102,20 +102,17 @@ const S3: React.FC = () => {
 
 const S4: React.FC = () => {
   const frame = useCurrentFrame();
-  const pending = IVR_FLOOR.verdict === null;
   return (
     <Scene>
       <Narration k="short_s4" />
-      <Kicker from={0}>And how were the runs chosen?</Kicker>
+      <Kicker from={0}>And who decides where the runs go?</Kicker>
       <div style={{ display: "flex", gap: 40, marginTop: 30 }}>
         <PickCard kind="lhs" from={10} width={820} />
-        <PickCard kind="ivr" from={40} width={820} />
+        <PickCard kind="ivr" from={70} width={820} />
       </div>
-      <div style={{ marginTop: "auto", ...enter(frame, 90) }}>
-        <div style={{ fontSize: T.sub, fontWeight: 600, color: pending ? C.muted : C.ink }}>
-          {pending ? "IVR result: pending the pre-registered run" : IVR_FLOOR.verdict}
-        </div>
-        <div style={{ fontSize: T.small, color: C.muted, marginTop: 14 }}>github.com/usman7384/active-multifidelity-surrogates</div>
+      <div style={{ marginTop: "auto", ...enter(frame, 120) }}>
+        <div style={{ fontSize: T.sub, fontWeight: 600 }}>Code, data and the full story:</div>
+        <div style={{ fontSize: T.body, color: C.mix, marginTop: 10 }}>github.com/usman7384/active-multifidelity-surrogates</div>
       </div>
     </Scene>
   );
